@@ -2,9 +2,6 @@
 
 namespace App\Models;
 
-use App\Models\Message;
-use App\Models\PetMatch;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -51,7 +48,16 @@ class Conversation extends Model
 
     public function latestMessage(): HasOne
     {
-        return $this->hasOne(Message::class)->latestOfMany();
+        return $this->hasOne(Message::class)
+            ->select([
+                'messages.id',
+                'messages.conversation_id',
+                'messages.sender_id',
+                'messages.body',
+                'messages.media_type',
+                'messages.created_at',
+            ])
+            ->latestOfMany();
     }
 
     public function hasUser(int $userId): bool
