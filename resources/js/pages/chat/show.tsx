@@ -111,19 +111,13 @@ export default function ChatShow({ conversation, messages }: { conversation: Con
         }
 
         try {
-            const response = await fetch(`/chat/${conversation.id}/messages`, {
+            await fetch(`/chat/${conversation.id}/messages`, {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
                 },
                 body: formData,
             });
-
-            const data = await response.json();
-
-            if (data.message) {
-                setItems((prev) => [...prev, data.message]);
-            }
 
             setMessageBody('');
             setMedia(null);
