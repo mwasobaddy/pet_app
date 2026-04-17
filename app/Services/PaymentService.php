@@ -52,7 +52,7 @@ class PaymentService
         return Subscription::create([
             'user_id' => $user->id,
             'tier_id' => $tier->id,
-            'payment_method' => 'free',
+            'payment_method' => 'none',
             'subscription_cycle' => $cycle,
             'price' => 0,
             'payment_status' => 'completed',

@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('tier_id')->constrained()->cascadeOnDelete();
-            $table->enum('payment_method', ['paypal', 'stripe', 'card'])->default('paypal');
+            $table->enum('payment_method', ['none', 'paypal', 'stripe', 'card'])->default('paypal');
             $table->enum('subscription_cycle', ['weekly', 'monthly', 'quarterly', 'yearly'])->default('monthly');
             $table->decimal('price', 8, 2);
             $table->enum('payment_status', ['pending', 'completed', 'failed', 'cancelled'])->default('pending');
