@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -43,80 +43,91 @@ export default function SelectSubscription({ tiers }: { tiers: Tier[] }) {
                     {/* Tier Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-6">
                         {tiers.map((tier) => (
-                            <Card key={tier.id} className="relative flex flex-col h-full overflow-hidden hover:shadow-lg transition-shadow">
-                                {/* Badge */}
-                                {tier.badge_label && (
-                                    <div className="absolute top-0 right-0">
-                                        <Badge 
-                                            className="rounded-none rounded-bl-lg"
-                                            style={{ backgroundColor: tier.badge_color }}
-                                        >
-                                            {tier.badge_label}
-                                        </Badge>
-                                    </div>
-                                )}
-
-                                <CardHeader>
-                                    <CardTitle>{tier.name}</CardTitle>
-                                    <CardDescription>{tier.description}</CardDescription>
-                                </CardHeader>
-
-                                <CardContent className="flex-grow">
-                                    <div className="space-y-4">
-                                        {/* Features List */}
-                                        <div className="space-y-3">
-                                            <FeatureItem 
-                                                label={`${tier.daily_swipe_limit} daily swipes`}
-                                                included={tier.daily_swipe_limit > 0}
-                                            />
-                                            <FeatureItem 
-                                                label={`${tier.daily_super_like_limit} super likes per day`}
-                                                included={tier.daily_super_like_limit > 0}
-                                            />
-                                            <FeatureItem 
-                                                label={`${tier.boost_limit} boosts per month`}
-                                                included={tier.boost_limit > 0}
-                                            />
-                                            <FeatureItem 
-                                                label="Rewind likes"
-                                                included={tier.rewind_enabled}
-                                            />
-                                            <FeatureItem 
-                                                label="Full profile visibility"
-                                                included={tier.full_profile_visibility}
-                                            />
-                                            <FeatureItem 
-                                                label="See who likes you"
-                                                included={tier.who_likes_you}
-                                            />
-                                            <FeatureItem 
-                                                label="Read receipts"
-                                                included={tier.read_receipts}
-                                            />
-                                            <FeatureItem 
-                                                label={`${tier.media_upload_limit_videos} video uploads`}
-                                                included={tier.media_upload_limit_videos > 0}
-                                            />
-                                        </div>
-                                    </div>
-                                </CardContent>
-
-                                <CardFooter>
-                                    <Link 
-                                        href={`/subscription/${tier.id}/select`}
-                                        method="post"
-                                        as="button"
-                                        className="w-full"
-                                    >
-                                        <Button className="w-full">Choose {tier.name}</Button>
-                                    </Link>
-                                </CardFooter>
-                            </Card>
+                            <TierCard key={tier.id} tier={tier} />
                         ))}
                     </div>
                 </div>
             </div>
         </>
+    );
+}
+
+function TierCard({ tier }: { tier: Tier }) {
+    const { post, processing } = useForm();
+
+    const handleSelectTier = () => {
+        post(route('subscription.store', { tier: tier.id }));
+    };
+
+    return (
+        <Card className="relative flex flex-col h-full overflow-hidden hover:shadow-lg transition-shadow">
+            {/* Badge */}
+            {tier.badge_label && (
+                <div className="absolute top-0 right-0 z-10">
+                    <Badge 
+                        className="rounded-none rounded-bl-lg"
+                        style={{ backgroundColor: tier.badge_color }}
+                    >
+                        {tier.badge_label}
+                    </Badge>
+                </div>
+            )}
+
+            <CardHeader>
+                <CardTitle>{tier.name}</CardTitle>
+                <CardDescription>{tier.description}</CardDescription>
+            </CardHeader>
+
+            <CardContent className="flex-grow">
+                <div className="space-y-4">
+                    {/* Features List */}
+                    <div className="space-y-3">
+                        <FeatureItem 
+                            label={`${tier.daily_swipe_limit} daily swipes`}
+                            included={tier.daily_swipe_limit > 0}
+                        />
+                        <FeatureItem 
+                            label={`${tier.daily_super_like_limit} super likes per day`}
+                            included={tier.daily_super_like_limit > 0}
+                        />
+                        <FeatureItem 
+                            label={`${tier.boost_limit} boosts per month`}
+                            included={tier.boost_limit > 0}
+                        />
+                        <FeatureItem 
+                            label="Rewind likes"
+                            included={tier.rewind_enabled}
+                        />
+                        <FeatureItem 
+                            label="Full profile visibility"
+                            included={tier.full_profile_visibility}
+                        />
+                        <FeatureItem 
+                            label="See who likes you"
+                            included={tier.who_likes_you}
+                        />
+                        <FeatureItem 
+                            label="Read receipts"
+                            included={tier.read_receipts}
+                        />
+                        <FeatureItem 
+                            label={`${tier.media_upload_limit_videos} video uploads`}
+                            included={tier.media_upload_limit_videos > 0}
+                        />
+                    </div>
+                </div>
+            </CardContent>
+
+            <CardFooter>
+                <Button 
+                    onClick={handleSelectTier}
+                    disabled={processing}
+                    className="w-full"
+                >
+                    {processing ? 'Selecting...' : `Choose ${tier.name}`}
+                </Button>
+            </CardFooter>
+        </Card>
     );
 }
 

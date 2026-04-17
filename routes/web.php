@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\MatchingController;
 use App\Http\Controllers\MessageController;
@@ -23,6 +23,8 @@ Route::get('auth/google/callback', [GoogleAuthController::class, 'callback'])->n
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('subscription', [SubscriptionController::class, 'select'])->name('subscription.select');
     Route::post('subscription/{tier}', [SubscriptionController::class, 'store'])->name('subscription.store');
+    Route::get('subscription/{tier}/payment', [SubscriptionController::class, 'payment'])->name('subscription.payment');
+    Route::post('subscription/{tier}/complete', [SubscriptionController::class, 'complete'])->name('subscription.complete');
 
     // Incomplete profile page
     Route::inertia('profile/incomplete', 'profile/incomplete')->name('profile.incomplete');
@@ -69,6 +71,5 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('{conversation}/read', [MessageController::class, 'markRead'])->name('messages.read');
     });
 });
-
 
 require __DIR__.'/settings.php';

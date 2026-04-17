@@ -2,8 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Models\PetProfile;
 use App\Models\PetImage;
+use App\Models\PetPersonalityTag;
+use App\Models\PetProfile;
 use App\Models\PetType;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -21,7 +22,7 @@ class PetProfileSeeder extends Seeder
         $petsData = [
             // Alice's pets
             [
-                'user_id' => $users->firstWhere('email', 'alice@example.com')->id,
+                'user_id' => $users->firstWhere('email', 'kelvinramsiel@gmail.com')->id,
                 'name' => 'Max',
                 'breed' => 'Golden Retriever',
                 'pet_type_id' => $petTypes['Dog'] ?? 1,
@@ -38,7 +39,7 @@ class PetProfileSeeder extends Seeder
             ],
             // Bob's pets
             [
-                'user_id' => $users->firstWhere('email', 'bob@example.com')->id,
+                'user_id' => $users->firstWhere('email', 'kelvinramsiel01@gmail.com')->id,
                 'name' => 'Luna',
                 'breed' => 'Siamese',
                 'pet_type_id' => $petTypes['Cat'] ?? 2,
@@ -53,7 +54,7 @@ class PetProfileSeeder extends Seeder
             ],
             // Bob's second pet
             [
-                'user_id' => $users->firstWhere('email', 'bob@example.com')->id,
+                'user_id' => $users->firstWhere('email', 'kelvinramsiel01@gmail.com')->id,
                 'name' => 'Charlie',
                 'breed' => 'Beagle',
                 'pet_type_id' => $petTypes['Dog'] ?? 1,
@@ -162,7 +163,7 @@ class PetProfileSeeder extends Seeder
             }
 
             // Attach personality tags
-            $tagIds = \App\Models\PetPersonalityTag::whereIn('name', $personalityTags)->pluck('id');
+            $tagIds = PetPersonalityTag::whereIn('name', $personalityTags)->pluck('id');
             $pet->personalityTags()->attach($tagIds);
         }
     }

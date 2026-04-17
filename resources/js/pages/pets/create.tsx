@@ -1,14 +1,14 @@
 import { Form, Head, router } from '@inertiajs/react';
+import { Upload } from 'lucide-react';
 import { useState } from 'react';
 import PetProfileController from '@/actions/App/Http/Controllers/PetProfileController';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent } from '@/components/ui/card';
-import { Upload } from 'lucide-react';
 import pets from '@/routes/pets';
 
 interface PetType {
