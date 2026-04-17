@@ -50,7 +50,7 @@ export default function CreatePet({
                     }}
                     className="space-y-6"
                 >
-                    {({ processing, errors, setData }) => (
+                    {({ processing, errors }) => (
                         <>
                             {/* Pet Type */}
                             <div className="grid gap-2">
@@ -60,7 +60,6 @@ export default function CreatePet({
                                     name="pet_type_id"
                                     required
                                     className="rounded-md border border-input bg-background px-3 py-2"
-                                    onChange={(e) => setData('pet_type_id', e.target.value ? Number(e.target.value) : '')}
                                     defaultValue=""
                                 >
                                     <option value="">Select a pet type</option>
@@ -156,7 +155,6 @@ export default function CreatePet({
                                                         ? [...selectedTags, tag.id]
                                                         : selectedTags.filter((id) => id !== tag.id);
                                                     setSelectedTags(updated);
-                                                    setData('personality_tag_ids', updated);
                                                 }}
                                             />
                                             <Label htmlFor={`tag-${tag.id}`} className="cursor-pointer font-normal">
@@ -166,6 +164,14 @@ export default function CreatePet({
                                     ))}
                                 </div>
                                 <InputError message={errors.personality_tag_ids} />
+                                {selectedTags.map((id) => (
+                                    <input
+                                        key={id}
+                                        type="hidden"
+                                        name="personality_tag_ids[]"
+                                        value={id}
+                                    />
+                                ))}
                             </div>
 
                             {/* Submit Button */}
