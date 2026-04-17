@@ -73,7 +73,18 @@ class PetProfileController extends Controller
         $petProfile->load('petType', 'images', 'personalityTags');
 
         return Inertia::render('pets/show', [
-            'pet' => $petProfile,
+            'pet' => [
+                'id' => $petProfile->id,
+                'name' => $petProfile->name,
+                'breed' => $petProfile->breed,
+                'age' => $petProfile->age,
+                'gender' => $petProfile->gender,
+                'description' => $petProfile->description,
+                'pet_type_id' => $petProfile->pet_type_id,
+                'petType' => $petProfile->petType,
+                'images' => $petProfile->images,
+                'personalityTags' => $petProfile->personalityTags,
+            ],
         ]);
     }
 
@@ -87,7 +98,16 @@ class PetProfileController extends Controller
         $petProfile->load('petType', 'images', 'personalityTags');
 
         return Inertia::render('pets/edit', [
-            'pet' => $petProfile,
+            'pet' => [
+                'id' => $petProfile->id,
+                'name' => $petProfile->name,
+                'breed' => $petProfile->breed,
+                'age' => $petProfile->age,
+                'gender' => $petProfile->gender,
+                'description' => $petProfile->description,
+                'pet_type_id' => $petProfile->pet_type_id,
+                'personalityTags' => $petProfile->personalityTags,
+            ],
             'petTypes' => $petTypes,
             'personalityTags' => $personalityTags,
         ]);
