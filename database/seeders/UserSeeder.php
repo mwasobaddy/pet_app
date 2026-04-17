@@ -12,13 +12,13 @@ class UserSeeder extends Seeder
         // Create test users with complete profiles
         $usersData = [
             [
-                'email' => 'alice@example.com',
+                'email' => 'kelvinramsiel@gmail.com',
                 'first_name' => 'Alice',
                 'other_names' => 'Johnson',
                 'mobile_number' => '+1234567890',
             ],
             [
-                'email' => 'bob@example.com',
+                'email' => 'kelvinramsiel01@gmail.com',
                 'first_name' => 'Bob',
                 'other_names' => 'Smith',
                 'mobile_number' => '+1234567891',
@@ -50,7 +50,7 @@ class UserSeeder extends Seeder
         ];
 
         foreach ($usersData as $userData) {
-            $user = User::updateOrCreate(
+            User::updateOrCreate(
                 ['email' => $userData['email']],
                 [
                     ...$userData,
@@ -58,11 +58,6 @@ class UserSeeder extends Seeder
                     'email_verified_at' => now(),
                 ]
             );
-
-            // Assign free tier role if not already assigned
-            if (!$user->hasRole('free_user')) {
-                $user->assignRole('free_user');
-            }
         }
     }
 }

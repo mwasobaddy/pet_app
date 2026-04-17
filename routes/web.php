@@ -7,6 +7,7 @@ use App\Http\Controllers\MatchingController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\NotificationsController;
 use App\Http\Controllers\PetProfileController;
+use App\Http\Controllers\SubscriptionController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -17,6 +18,15 @@ Route::inertia('/', 'welcome', [
 // Google OAuth routes
 Route::get('auth/google', [GoogleAuthController::class, 'redirect'])->name('auth.google');
 Route::get('auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
+
+// Subscription routes (auth but not tier-checked yet)
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('subscription', [SubscriptionController::class, 'select'])->name('subscription.select');
+    Route::post('subscription/{tier}', [SubscriptionController::class, 'store'])->name('subscription.store');
+
+    // Incomplete profile page
+    Route::inertia('profile/incomplete', 'profile/incomplete')->name('profile.incomplete');
+});
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
