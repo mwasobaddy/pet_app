@@ -1,10 +1,9 @@
 import { Head, useForm } from '@inertiajs/react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Radio } from '@/components/ui/radio';
-import { SUBSCRIPTION_CYCLES, PAYMENT_METHODS } from '@/lib/payment';
 import { AlertCircle } from 'lucide-react';
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { SUBSCRIPTION_CYCLES, PAYMENT_METHODS } from '@/lib/payment';
 import subscription from '@/routes/subscription';
 
 interface Tier {
@@ -78,9 +77,12 @@ export default function PaymentPage({ tier, paymentMethods, cycles }: { tier: Ti
                                         cycles.includes(cycle.value) ? (
                                             <div key={cycle.value} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted cursor-pointer"
                                                  onClick={() => setSelectedCycle(cycle.value)}>
-                                                <Radio
+                                                <input
+                                                    type="radio"
+                                                    name="subscription_cycle"
                                                     checked={selectedCycle === cycle.value}
-                                                    onChange={(checked) => checked && setSelectedCycle(cycle.value)}
+                                                    onChange={() => setSelectedCycle(cycle.value)}
+                                                    className="h-4 w-4"
                                                 />
                                                 <div className="flex-1">
                                                     <div className="font-medium">{cycle.label}</div>
@@ -110,9 +112,12 @@ export default function PaymentPage({ tier, paymentMethods, cycles }: { tier: Ti
                                         paymentMethods.includes(method.id) ? (
                                             <div key={method.id} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted cursor-pointer"
                                                  onClick={() => setSelectedMethod(method.id)}>
-                                                <Radio
+                                                <input
+                                                    type="radio"
+                                                    name="payment_method"
                                                     checked={selectedMethod === method.id}
-                                                    onChange={(checked) => checked && setSelectedMethod(method.id)}
+                                                    onChange={() => setSelectedMethod(method.id)}
+                                                    className="h-4 w-4"
                                                 />
                                                 <div className="flex-1">
                                                     <div className="font-medium">{method.label}</div>

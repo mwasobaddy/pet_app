@@ -34,10 +34,10 @@ class SubscriptionController extends Controller
     /**
      * Show payment method selection for paid tiers.
      */
-    public function payment(Tier $tier): Response
+    public function payment(Tier $tier): Response|RedirectResponse
     {
         if ($tier->slug === 'free') {
-            return redirect()->route('subscription.complete', $tier);
+            return redirect()->route('subscription.select');
         }
 
         return Inertia::render('subscription/payment', [
@@ -61,14 +61,16 @@ class SubscriptionController extends Controller
 
         // If free tier, complete subscription immediately
         if ($tier->slug === 'free') {
-            $subscription = $this->paymentService->initiatePayment(
+            $this->paymentService->initiatePayment(
                 $user,
                 $tier,
-                'free',
+                'none',
                 'monthly'
             );
 
             $this->assignRoleAndRedirect($user, $tier);
+
+            return $this->redirectToNextStep($user);
         }
 
         // For paid tiers, redirect to payment selection
