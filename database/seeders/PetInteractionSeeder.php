@@ -34,86 +34,118 @@ class PetInteractionSeeder extends Seeder
         // Create sample interactions (swipes)
         // Alice likes Bob's Luna
         if ($alicePets->isNotEmpty() && $bobPets->isNotEmpty()) {
-            PetInteraction::create([
-                'from_user_id' => $alice->id,
-                'to_pet_profile_id' => $bobPets->first()->id,
-                'interaction_type' => 'like',
-            ]);
+            PetInteraction::firstOrCreate(
+                [
+                    'from_user_id' => $alice->id,
+                    'to_pet_profile_id' => $bobPets->first()->id,
+                    'interaction_type' => 'like',
+                ]
+            );
         }
 
         // Bob likes Alice's Max
         if ($bobPets->isNotEmpty() && $alicePets->isNotEmpty()) {
-            PetInteraction::create([
-                'from_user_id' => $bob->id,
-                'to_pet_profile_id' => $alicePets->first()->id,
-                'interaction_type' => 'like',
-            ]);
+            PetInteraction::firstOrCreate(
+                [
+                    'from_user_id' => $bob->id,
+                    'to_pet_profile_id' => $alicePets->first()->id,
+                    'interaction_type' => 'like',
+                ]
+            );
 
             // Create a match between Alice's Max and Bob's Luna
-            PetMatch::create([
-                'pet_profile_1_id' => $alicePets->first()->id,
-                'pet_profile_2_id' => $bobPets->first()->id,
-                'matched_at' => now()->subHours(2),
-            ]);
+            PetMatch::firstOrCreate(
+                [
+                    'pet_profile_1_id' => $alicePets->first()->id,
+                    'pet_profile_2_id' => $bobPets->first()->id,
+                ],
+                [
+                    'pet_profile_1_id' => $alicePets->first()->id,
+                    'pet_profile_2_id' => $bobPets->first()->id,
+                    'matched_at' => now()->subHours(2),
+                ]
+            );
         }
 
         // Bob super_likes Diana's Bella
         if ($bobPets->count() > 1 && $dianaPets->isNotEmpty()) {
-            PetInteraction::create([
-                'from_user_id' => $bob->id,
-                'to_pet_profile_id' => $dianaPets->first()->id,
-                'interaction_type' => 'super_like',
-            ]);
+            PetInteraction::firstOrCreate(
+                [
+                    'from_user_id' => $bob->id,
+                    'to_pet_profile_id' => $dianaPets->first()->id,
+                    'interaction_type' => 'super_like',
+                ]
+            );
         }
 
         // Diana likes Bob's Charlie
         if ($dianaPets->isNotEmpty() && $bobPets->count() > 1) {
-            PetInteraction::create([
-                'from_user_id' => $diana->id,
-                'to_pet_profile_id' => $bobPets->last()->id,
-                'interaction_type' => 'like',
-            ]);
+            PetInteraction::firstOrCreate(
+                [
+                    'from_user_id' => $diana->id,
+                    'to_pet_profile_id' => $bobPets->last()->id,
+                    'interaction_type' => 'like',
+                ]
+            );
 
             // Create a match
-            PetMatch::create([
-                'pet_profile_1_id' => $dianaPets->first()->id,
-                'pet_profile_2_id' => $bobPets->last()->id,
-                'matched_at' => now()->subHour(),
-            ]);
+            PetMatch::firstOrCreate(
+                [
+                    'pet_profile_1_id' => $dianaPets->first()->id,
+                    'pet_profile_2_id' => $bobPets->last()->id,
+                ],
+                [
+                    'pet_profile_1_id' => $dianaPets->first()->id,
+                    'pet_profile_2_id' => $bobPets->last()->id,
+                    'matched_at' => now()->subHour(),
+                ]
+            );
         }
 
         // Charlie passes on Diana's Oscar
         if ($charliePets->isNotEmpty() && $dianaPets->count() > 1) {
-            PetInteraction::create([
-                'from_user_id' => $charlie->id,
-                'to_pet_profile_id' => $dianaPets->last()->id,
-                'interaction_type' => 'pass',
-            ]);
+            PetInteraction::firstOrCreate(
+                [
+                    'from_user_id' => $charlie->id,
+                    'to_pet_profile_id' => $dianaPets->last()->id,
+                    'interaction_type' => 'pass',
+                ]
+            );
         }
 
         // Eve likes Frank's Gatsby
         if ($evePets->isNotEmpty() && $frankPets->isNotEmpty()) {
-            PetInteraction::create([
-                'from_user_id' => $eve->id,
-                'to_pet_profile_id' => $frankPets->first()->id,
-                'interaction_type' => 'like',
-            ]);
+            PetInteraction::firstOrCreate(
+                [
+                    'from_user_id' => $eve->id,
+                    'to_pet_profile_id' => $frankPets->first()->id,
+                    'interaction_type' => 'like',
+                ]
+            );
         }
 
         // Frank likes Eve's Shadow
         if ($frankPets->isNotEmpty() && $evePets->isNotEmpty()) {
-            PetInteraction::create([
-                'from_user_id' => $frank->id,
-                'to_pet_profile_id' => $evePets->first()->id,
-                'interaction_type' => 'like',
-            ]);
+            PetInteraction::firstOrCreate(
+                [
+                    'from_user_id' => $frank->id,
+                    'to_pet_profile_id' => $evePets->first()->id,
+                    'interaction_type' => 'like',
+                ]
+            );
 
             // Create a match
-            PetMatch::create([
-                'pet_profile_1_id' => $frankPets->first()->id,
-                'pet_profile_2_id' => $evePets->first()->id,
-                'matched_at' => now()->subMinutes(30),
-            ]);
+            PetMatch::firstOrCreate(
+                [
+                    'pet_profile_1_id' => $frankPets->first()->id,
+                    'pet_profile_2_id' => $evePets->first()->id,
+                ],
+                [
+                    'pet_profile_1_id' => $frankPets->first()->id,
+                    'pet_profile_2_id' => $evePets->first()->id,
+                    'matched_at' => now()->subMinutes(30),
+                ]
+            );
         }
 
         // Add some additional passes for testing
