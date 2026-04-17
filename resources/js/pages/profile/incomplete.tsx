@@ -1,4 +1,4 @@
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,7 +13,9 @@ export default function IncompleteProfile() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(route('profile.update'));
+        post(route('profile.update'), {
+            onSuccess: () => router.visit(route('dashboard')),
+        });
     };
 
     const isFormComplete = data.first_name && data.other_names;
