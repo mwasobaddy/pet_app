@@ -1,6 +1,5 @@
 import { Form, Head, router } from '@inertiajs/react';
 import { useState } from 'react';
-import PetProfileController from '@/actions/App/Http/Controllers/PetProfileController';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -65,7 +64,6 @@ export default function EditPet({
                 />
 
                 <Form
-                    {...PetProfileController.update.form()}
                     action={pets.update.url(pet.id)}
                     method="patch"
                     options={{
