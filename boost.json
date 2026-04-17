@@ -17,6 +17,7 @@
         "pest-testing",
         "inertia-react-development",
         "tailwindcss-development",
+        "echo-development",
         "laravel-permission-development"
     ]
 }
