@@ -15,11 +15,11 @@ beforeEach(function () {
 });
 
 test('users with incomplete profiles are redirected from dashboard', function () {
-    // Create user with Google sign-in (missing mobile_number)
+    // Create user with missing first_name and other_names
     $user = User::factory()->create([
-        'first_name' => 'Jane',
-        'other_names' => 'Doe',
-        'mobile_number' => null, // Missing!
+        'first_name' => null,
+        'other_names' => null,
+        'mobile_number' => null,
         'email' => 'jane@example.com',
         'email_verified_at' => now(),
     ]);
@@ -28,8 +28,8 @@ test('users with incomplete profiles are redirected from dashboard', function ()
 
     $response = $this->actingAs($user)->get(route('dashboard'));
 
-    // Should redirect to profile.edit, not show dashboard
-    $response->assertRedirect(route('profile.edit'));
+    // Should redirect to profile.incomplete
+    $response->assertRedirect(route('profile.incomplete'));
     $response->assertSessionHas('warning', 'Please complete your profile to continue.');
 });
 
@@ -37,7 +37,7 @@ test('users with complete profiles can access dashboard', function () {
     $user = User::factory()->create([
         'first_name' => 'John',
         'other_names' => 'Smith',
-        'mobile_number' => '555-1234',
+        'mobile_number' => null, // Optional now
         'email' => 'john@example.com',
         'email_verified_at' => now(),
     ]);
@@ -62,8 +62,8 @@ test('users with complete profiles can access dashboard', function () {
 
 test('users can access profile edit page with incomplete profile', function () {
     $user = User::factory()->create([
-        'first_name' => 'Jane',
-        'other_names' => 'Doe',
+        'first_name' => null,
+        'other_names' => null,
         'mobile_number' => null,
         'email' => 'jane@example.com',
         'email_verified_at' => now(),
@@ -71,10 +71,27 @@ test('users can access profile edit page with incomplete profile', function () {
 
     $user->assignRole('free_user');
 
-    // Profile edit should be accessible (no pet profile check)
-    // Just verify it doesn't return 500
+    // Profile edit should be accessible (in except list)
     $response = $this->actingAs($user)->get(route('profile.edit'));
 
-    // Should not error (200 or redirect is fine, as long as no 500)
-    expect($response->getStatusCode())->toBeLessThan(500);
+    // Should not redirect, should be accessible
+    expect($response->getStatusCode())->toBeLessThan(400);
+});
+
+test('users can access incomplete profile page', function () {
+    $user = User::factory()->create([
+        'first_name' => null,
+        'other_names' => null,
+        'mobile_number' => null,
+        'email' => 'jane@example.com',
+        'email_verified_at' => now(),
+    ]);
+
+    $user->assignRole('free_user');
+
+    // Incomplete profile page should be accessible
+    $response = $this->actingAs($user)->get(route('profile.incomplete'));
+
+    // Should not redirect, should be accessible
+    expect($response->getStatusCode())->toBeLessThan(400);
 });

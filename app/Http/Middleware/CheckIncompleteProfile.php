@@ -33,6 +33,7 @@ class CheckIncompleteProfile
         'two-factor.recovery-codes',
         'two-factor.regenerate-recovery-codes',
         'two-factor.secret-key',
+        'profile.incomplete',
         'profile.edit',
         'profile.update',
         'profile.destroy',
@@ -70,7 +71,7 @@ class CheckIncompleteProfile
 
         // Check if profile is incomplete
         if (! $this->isProfileComplete($user)) {
-            return redirect()->route('profile.edit')
+            return redirect()->route('profile.incomplete')
                 ->with('warning', 'Please complete your profile to continue.');
         }
 
@@ -80,7 +81,6 @@ class CheckIncompleteProfile
     private function isProfileComplete($user): bool
     {
         return ! empty($user->first_name)
-            && ! empty($user->other_names)
-            && ! empty($user->mobile_number);
+            && ! empty($user->other_names);
     }
 }
