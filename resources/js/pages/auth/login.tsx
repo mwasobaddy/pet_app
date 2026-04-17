@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { register } from '@/routes';
-import { store } from '@/routes/login';
+import login from '@/routes/login';
 import { request } from '@/routes/password';
 
 type Props = {
@@ -22,6 +22,18 @@ export default function Login({
     canResetPassword,
     canRegister,
 }: Props) {
+    const store = {
+        form: () => ({
+            method: 'post',
+            action: login.store.url(),
+            data: {
+                email: '',
+                password: '',
+                remember: false,
+            },
+        }),
+    };
+
     return (
         <>
             <Head title="Log in" />
