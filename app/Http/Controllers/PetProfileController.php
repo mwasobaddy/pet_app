@@ -3,16 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePetProfileRequest;
+use App\Models\PetPersonalityTag;
 use App\Models\PetProfile;
 use App\Models\PetType;
-use App\Models\PetPersonalityTag;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class PetProfileController extends Controller
 {
+    use AuthorizesRequests;
+
     public function create(): Response
     {
         $petTypes = PetType::all(['id', 'name', 'icon']);
@@ -38,7 +40,7 @@ class PetProfileController extends Controller
         ]);
 
         // Attach personality tags if provided
-        if (!empty($validated['personality_tag_ids'])) {
+        if (! empty($validated['personality_tag_ids'])) {
             $petProfile->personalityTags()->attach($validated['personality_tag_ids']);
         }
 
@@ -108,7 +110,7 @@ class PetProfileController extends Controller
         ]);
 
         // Sync personality tags if provided
-        if (!empty($validated['personality_tag_ids'])) {
+        if (! empty($validated['personality_tag_ids'])) {
             $petProfile->personalityTags()->sync($validated['personality_tag_ids']);
         } else {
             $petProfile->personalityTags()->detach();
@@ -138,9 +140,6 @@ class PetProfileController extends Controller
 
     /**
      * Save images for a pet profile.
-     *
-     * @param  PetProfile  $petProfile
-     * @param  array  $images
      */
     private function saveImages(PetProfile $petProfile, array $images): void
     {
