@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Card, CardContent } from '@/components/ui/card';
+import { Upload } from 'lucide-react';
 import pets from '@/routes/pets';
 
 interface PetType {
@@ -29,6 +31,7 @@ export default function CreatePet({
     personalityTags: PersonalityTag[];
 }) {
     const [selectedTags, setSelectedTags] = useState<number[]>([]);
+    const [selectedImages, setSelectedImages] = useState<File[]>([]);
 
     return (
         <>
@@ -139,6 +142,66 @@ export default function CreatePet({
                                     rows={4}
                                 />
                                 <InputError message={errors.description} />
+                            </div>
+
+                            {/* Pet Images */}
+                            <div className="grid gap-2">
+                                <Label htmlFor="images">Pet Photos (Optional)</Label>
+                                <div className="rounded-lg border-2 border-dashed border-input bg-muted/50 p-6 text-center cursor-pointer hover:bg-muted transition"
+                                    onClick={() => document.getElementById('image-input')?.click()}
+                                >
+                                    <Upload className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+                                    <p className="text-sm font-medium text-foreground">Click to upload photos</p>
+                                    <p className="text-xs text-muted-foreground">or drag and drop</p>
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                        PNG, JPG, GIF, WebP up to 5MB each (max 5 photos)
+                                    </p>
+                                    <input
+                                        id="image-input"
+                                        type="file"
+                                        name="images[]"
+                                        multiple
+                                        accept="image/jpeg,image/png,image/gif,image/webp"
+                                        onChange={(e) => {
+                                            const files = Array.from(e.target.files || []);
+                                            setSelectedImages(files);
+                                        }}
+                                        hidden
+                                    />
+                                </div>
+
+                                {/* Display selected images */}
+                                {selectedImages.length > 0 && (
+                                    <div className="mt-4">
+                                        <p className="text-sm font-medium mb-2">
+                                            {selectedImages.length} photo{selectedImages.length !== 1 ? 's' : ''} selected
+                                        </p>
+                                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+                                            {selectedImages.map((file, index) => (
+                                                <Card key={index} className="relative overflow-hidden">
+                                                    <CardContent className="p-2">
+                                                        <img
+                                                            src={URL.createObjectURL(file)}
+                                                            alt={`Preview ${index + 1}`}
+                                                            className="h-24 w-full object-cover rounded"
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setSelectedImages(selectedImages.filter((_, i) => i !== index));
+                                                            }}
+                                                            className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 hover:bg-destructive/90"
+                                                        >
+                                                            ✕
+                                                        </button>
+                                                    </CardContent>
+                                                </Card>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                <InputError message={errors['images.*'] || errors.images} />
                             </div>
 
                             {/* Personality Tags */}

@@ -31,6 +31,8 @@ class StorePetProfileRequest extends FormRequest
             'description' => ['nullable', 'string', 'max:1000'],
             'personality_tag_ids' => ['nullable', 'array'],
             'personality_tag_ids.*' => ['exists:pet_personality_tags,id'],
+            'images' => ['nullable', 'array', 'max:5'],
+            'images.*' => ['image', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
         ];
     }
 }

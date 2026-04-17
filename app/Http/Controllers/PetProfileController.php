@@ -7,6 +7,7 @@ use App\Models\PetProfile;
 use App\Models\PetType;
 use App\Models\PetPersonalityTag;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -37,8 +38,13 @@ class PetProfileController extends Controller
         ]);
 
         // Attach personality tags if provided
-        if (! empty($validated['personality_tag_ids'])) {
+        if (!empty($validated['personality_tag_ids'])) {
             $petProfile->personalityTags()->attach($validated['personality_tag_ids']);
+        }
+
+        // Handle image uploads
+        if ($request->hasFile('images')) {
+            $this->saveImages($petProfile, $request->file('images'));
         }
 
         return redirect()
@@ -102,10 +108,15 @@ class PetProfileController extends Controller
         ]);
 
         // Sync personality tags if provided
-        if (! empty($validated['personality_tag_ids'])) {
+        if (!empty($validated['personality_tag_ids'])) {
             $petProfile->personalityTags()->sync($validated['personality_tag_ids']);
         } else {
             $petProfile->personalityTags()->detach();
+        }
+
+        // Handle image uploads
+        if ($request->hasFile('images')) {
+            $this->saveImages($petProfile, $request->file('images'));
         }
 
         return redirect()
@@ -123,5 +134,25 @@ class PetProfileController extends Controller
         return redirect()
             ->route('pets.index')
             ->with('success', 'Pet profile deleted successfully!');
+    }
+
+    /**
+     * Save images for a pet profile.
+     *
+     * @param  PetProfile  $petProfile
+     * @param  array  $images
+     */
+    private function saveImages(PetProfile $petProfile, array $images): void
+    {
+        $order = $petProfile->images()->max('order') ?? 0;
+
+        foreach ($images as $image) {
+            $path = $image->store("pets/{$petProfile->id}", 'public');
+
+            $petProfile->images()->create([
+                'path' => $path,
+                'order' => ++$order,
+            ]);
+        }
     }
 }
