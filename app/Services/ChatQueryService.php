@@ -20,7 +20,7 @@ class ChatQueryService
             ->with([
                 'userOne:id,first_name,other_names',
                 'userTwo:id,first_name,other_names',
-                'latestMessage:id,conversation_id,sender_id,body,media_type,created_at',
+                'latestMessage',
             ])
             ->withCount([
                 'messages as unread_count' => function ($query) use ($user) {
