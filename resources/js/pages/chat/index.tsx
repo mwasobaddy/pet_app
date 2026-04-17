@@ -1,5 +1,7 @@
-import { Head, Link } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import Heading from '@/components/heading';
+import type { Auth } from '@/types/auth';
 
 interface ConversationSummary {
     id: number;
@@ -19,7 +21,57 @@ interface ConversationSummary {
     } | null;
 }
 
-export default function ChatIndex({ conversations }: { conversations: ConversationSummary[] }) {
+export default function ChatIndex({ conversations: initialConversations }: { conversations: ConversationSummary[] }) {
+    const { auth } = usePage<{ auth: Auth }>().props;
+    const [conversations, setConversations] = useState<ConversationSummary[]>(initialConversations);
+
+    useEffect(() => {
+        if (!window.Echo) return;
+
+        // Subscribe to all conversation channels
+        initialConversations.forEach((conversation) => {
+            const channel = window.Echo.private(`chat.${conversation.id}`);
+
+            // Listen for new messages
+            channel.listen('.message.sent', (event: { message: { id: number; sender_id: number; body: string | null; media_type: string | null; created_at: string } }) => {
+                setConversations((prev) =>
+                    prev.map((conv) =>
+                        conv.id === conversation.id
+                            ? {
+                                  ...conv,
+                                  latest_message: event.message,
+                                  last_message_at: event.message.created_at,
+                                  unread_count: event.message.sender_id === auth.user.id ? conv.unread_count : conv.unread_count + 1,
+                              }
+                            : conv
+                    )
+                );
+            });
+
+            // Listen for read status updates
+            channel.listen('.message.read', (event: { message_ids: number[]; reader_id: number }) => {
+                if (event.reader_id !== auth.user.id) {
+                    setConversations((prev) =>
+                        prev.map((conv) =>
+                            conv.id === conversation.id
+                                ? {
+                                      ...conv,
+                                      unread_count: 0,
+                                  }
+                                : conv
+                        )
+                    );
+                }
+            });
+        });
+
+        return () => {
+            initialConversations.forEach((conversation) => {
+                window.Echo?.leave(`chat.${conversation.id}`);
+            });
+        };
+    }, [initialConversations, auth.user.id]);
+
     return (
         <>
             <Head title="Chat" />
