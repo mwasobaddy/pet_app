@@ -52,7 +52,7 @@ class MatchingService
 
         return $query
             ->orderByRaw(
-                'CASE WHEN pet_profiles.is_featured_manual = 1 OR (pet_profiles.featured_until IS NOT NULL AND pet_profiles.featured_until > CURRENT_TIMESTAMP) THEN 1 ELSE 0 END DESC'
+                'CASE WHEN pet_profiles.is_featured_manual = true OR (pet_profiles.featured_until IS NOT NULL AND pet_profiles.featured_until > CURRENT_TIMESTAMP) THEN 1 ELSE 0 END DESC'
             )
             ->orderByDesc('pet_profiles.featured_weight')
             ->orderByDesc(DB::raw('COALESCE(t.priority, 0)'))
