@@ -31,12 +31,5 @@ class DatabaseSeeder extends Seeder
 
         // Seed pet interactions and matches for testing swipe functionality
         $this->call(PetInteractionSeeder::class);
-
-        // Also create the original test user for development
-        User::factory()->create([
-            'first_name' => 'Test',
-            'other_names' => 'User',
-            'email' => 'test@example.com',
-        ]);
     }
 }
