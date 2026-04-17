@@ -5,6 +5,7 @@ import { Radio } from '@/components/ui/radio';
 import { SUBSCRIPTION_CYCLES, PAYMENT_METHODS } from '@/lib/payment';
 import { AlertCircle } from 'lucide-react';
 import { useState } from 'react';
+import subscription from '@/routes/subscription';
 
 interface Tier {
     id: number;
@@ -19,7 +20,7 @@ export default function PaymentPage({ tier, paymentMethods, cycles }: { tier: Ti
     const [selectedMethod, setSelectedMethod] = useState<string>(paymentMethods[0] || 'paypal');
 
     const handlePayment = () => {
-        post(route('subscription.complete', { tier: tier.id }), {
+        post(subscription.complete.url({ tier: tier.id }), {
             data: {
                 payment_method: selectedMethod,
                 subscription_cycle: selectedCycle,
