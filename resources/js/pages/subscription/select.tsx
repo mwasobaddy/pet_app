@@ -3,6 +3,7 @@ import { Check } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import subscription from '@/routes/subscription';
 
 interface Tier {
     id: number;
@@ -56,7 +57,7 @@ function TierCard({ tier }: { tier: Tier }) {
     const { post, processing } = useForm();
 
     const handleSelectTier = () => {
-        post(route('subscription.store', { tier: tier.id }));
+        post(subscription.store.url({ tier: tier.id }));
     };
 
     return (

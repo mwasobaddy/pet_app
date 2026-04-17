@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Subscription;
 use App\Models\Tier;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 
 class PaymentService
 {
@@ -81,7 +82,7 @@ class PaymentService
     /**
      * Calculate expiry date based on subscription cycle
      */
-    private function calculateExpiryDate(string $cycle): \DateTime
+    private function calculateExpiryDate(string $cycle): CarbonImmutable
     {
         return match ($cycle) {
             'weekly' => now()->addWeek(),
