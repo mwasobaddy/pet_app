@@ -50,14 +50,19 @@ class UserSeeder extends Seeder
         ];
 
         foreach ($usersData as $userData) {
-            $user = User::create([
-                ...$userData,
-                'password' => bcrypt('password123'),
-                'email_verified_at' => now(),
-            ]);
+            $user = User::updateOrCreate(
+                ['email' => $userData['email']],
+                [
+                    ...$userData,
+                    'password' => bcrypt('password123'),
+                    'email_verified_at' => now(),
+                ]
+            );
 
-            // Assign free tier role
-            $user->assignRole('free_user');
+            // Assign free tier role if not already assigned
+            if (!$user->hasRole('free_user')) {
+                $user->assignRole('free_user');
+            }
         }
     }
 }
