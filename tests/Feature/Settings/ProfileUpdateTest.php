@@ -1,12 +1,13 @@
 <?php
 
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Helpers\WithTier;
 
 uses(RefreshDatabase::class);
+uses(WithTier::class);
 
 test('profile page is displayed', function () {
-    $user = User::factory()->create();
+    $user = $this->createUserWithTier();
 
     $response = $this
         ->actingAs($user)
@@ -16,7 +17,7 @@ test('profile page is displayed', function () {
 });
 
 test('profile information can be updated', function () {
-    $user = User::factory()->create();
+    $user = $this->createUserWithTier();
 
     $response = $this
         ->actingAs($user)
@@ -41,7 +42,7 @@ test('profile information can be updated', function () {
 });
 
 test('email verification status is unchanged when the email address is unchanged', function () {
-    $user = User::factory()->create();
+    $user = $this->createUserWithTier();
 
     $response = $this
         ->actingAs($user)
@@ -60,7 +61,7 @@ test('email verification status is unchanged when the email address is unchanged
 });
 
 test('user can delete their account', function () {
-    $user = User::factory()->create();
+    $user = $this->createUserWithTier();
 
     $response = $this
         ->actingAs($user)
@@ -77,7 +78,7 @@ test('user can delete their account', function () {
 });
 
 test('correct password must be provided to delete account', function () {
-    $user = User::factory()->create();
+    $user = $this->createUserWithTier();
 
     $response = $this
         ->actingAs($user)

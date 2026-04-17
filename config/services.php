@@ -41,4 +41,58 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Payment Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configure payment methods and default provider for handling subscriptions.
+    | Supported providers: paypal, stripe, card
+    |
+    */
+
+    'payment' => [
+        'provider' => env('PAYMENT_PROVIDER', 'paypal'),
+        'enabled_methods' => [
+            'paypal',
+            'stripe',
+            'card',
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | PayPal Configuration
+    |--------------------------------------------------------------------------
+    */
+
+    'paypal' => [
+        'client_id' => env('PAYPAL_CLIENT_ID'),
+        'client_secret' => env('PAYPAL_CLIENT_SECRET'),
+        'mode' => env('PAYPAL_MODE', 'sandbox'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Stripe Configuration
+    |--------------------------------------------------------------------------
+    */
+
+    'stripe' => [
+        'key' => env('STRIPE_PUBLIC_KEY'),
+        'secret' => env('STRIPE_SECRET_KEY'),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Card Payment Configuration
+    |--------------------------------------------------------------------------
+    | For direct card payments (implement through third-party processor)
+    */
+
+    'card' => [
+        'processor' => env('CARD_PROCESSOR', 'stripe'),
+    ],
+
 ];

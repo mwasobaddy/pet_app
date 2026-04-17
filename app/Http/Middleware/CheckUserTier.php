@@ -35,6 +35,9 @@ class CheckUserTier
         'two-factor.secret-key',
         'subscription.select',
         'subscription.store',
+        'subscription.payment',
+        'subscription.complete',
+        'profile.incomplete',
     ];
 
     public function handle(Request $request, Closure $next): Response
@@ -46,7 +49,7 @@ class CheckUserTier
         $user = auth()->user();
 
         // Check if user has any role (tier selected)
-        if ($user && !$user->hasAnyRole('free_user|premium_user|elite_user')) {
+        if ($user && ! $user->hasAnyRole('free_user|vip_user|svip_user')) {
             return redirect()->route('subscription.select');
         }
 
@@ -58,7 +61,7 @@ class CheckUserTier
      */
     private function shouldSkip(Request $request): bool
     {
-        if (!auth()->check()) {
+        if (! auth()->check()) {
             return true;
         }
 
