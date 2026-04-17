@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Models\Conversation;
 use App\Models\PetMatch;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection;
 
 class ChatQueryService
 {
