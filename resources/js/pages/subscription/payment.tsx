@@ -75,7 +75,7 @@ export default function PaymentPage({ tier, paymentMethods, cycles }: { tier: Ti
                             <CardContent>
                                 <div className="space-y-3">
                                     {SUBSCRIPTION_CYCLES.map((cycle) => (
-                                        cycles.includes(cycle.value) && (
+                                        cycles.includes(cycle.value) ? (
                                             <div key={cycle.value} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted cursor-pointer"
                                                  onClick={() => setSelectedCycle(cycle.value)}>
                                                 <Radio
@@ -90,7 +90,7 @@ export default function PaymentPage({ tier, paymentMethods, cycles }: { tier: Ti
                                                     ${calculatePrice(cycle.value).toFixed(2)}
                                                 </div>
                                             </div>
-                                        )
+                                        ) : null
                                     ))}
                                 </div>
                             </CardContent>
@@ -107,7 +107,7 @@ export default function PaymentPage({ tier, paymentMethods, cycles }: { tier: Ti
                             <CardContent>
                                 <div className="space-y-3">
                                     {PAYMENT_METHODS.map((method) => (
-                                        paymentMethods.includes(method.id) && (
+                                        paymentMethods.includes(method.id) ? (
                                             <div key={method.id} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted cursor-pointer"
                                                  onClick={() => setSelectedMethod(method.id)}>
                                                 <Radio
@@ -119,7 +119,7 @@ export default function PaymentPage({ tier, paymentMethods, cycles }: { tier: Ti
                                                     <div className="text-sm text-muted-foreground">{method.description}</div>
                                                 </div>
                                             </div>
-                                        )
+                                        ) : null
                                     ))}
                                 </div>
                             </CardContent>
