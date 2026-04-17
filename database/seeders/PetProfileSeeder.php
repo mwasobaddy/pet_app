@@ -22,7 +22,7 @@ class PetProfileSeeder extends Seeder
         $petsData = [
             // Alice's pets
             [
-                'user_id' => $users->firstWhere('email', 'kelvinramsiel@gmail.com')->id,
+                'user_id' => $users->firstWhere('email', 'alice@example.com')->id,
                 'name' => 'Max',
                 'breed' => 'Golden Retriever',
                 'pet_type_id' => $petTypes['Dog'] ?? 1,
@@ -84,7 +84,7 @@ class PetProfileSeeder extends Seeder
             ],
             // Diana's pets
             [
-                'user_id' => $users->firstWhere('email', 'diana@example.com')->id,
+                'user_id' => $users->firstWhere('email', 'kelvinramsiel@gmail.com')->id,
                 'name' => 'Bella',
                 'breed' => 'Labrador Retriever',
                 'pet_type_id' => $petTypes['Dog'] ?? 1,
@@ -101,7 +101,7 @@ class PetProfileSeeder extends Seeder
             ],
             // Diana's second pet
             [
-                'user_id' => $users->firstWhere('email', 'diana@example.com')->id,
+                'user_id' => $users->firstWhere('email', 'kelvinramsiel@gmail.com')->id,
                 'name' => 'Oscar',
                 'breed' => 'French Bulldog',
                 'pet_type_id' => $petTypes['Dog'] ?? 1,

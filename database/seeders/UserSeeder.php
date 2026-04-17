@@ -12,7 +12,7 @@ class UserSeeder extends Seeder
         // Create test users with complete profiles
         $usersData = [
             [
-                'email' => 'kelvinramsiel@gmail.com',
+                'email' => 'alice@example.com',
                 'first_name' => 'Alice',
                 'other_names' => 'Johnson',
                 'mobile_number' => '+1234567890',
@@ -30,7 +30,7 @@ class UserSeeder extends Seeder
                 'mobile_number' => '+1234567892',
             ],
             [
-                'email' => 'diana@example.com',
+                'email' => 'kelvinramsiel@gmail.com',
                 'first_name' => 'Diana',
                 'other_names' => 'Prince',
                 'mobile_number' => '+1234567893',

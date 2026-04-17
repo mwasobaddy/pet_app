@@ -16,10 +16,10 @@ class PetInteractionSeeder extends Seeder
         $petProfiles = PetProfile::all();
 
         // Get specific users for interaction examples
-        $alice = $users->firstWhere('email', 'kelvinramsiel@gmail.com');
+        $alice = $users->firstWhere('email', 'alice@example.com');
         $bob = $users->firstWhere('email', 'kelvinramsiel01@gmail.com');
         $charlie = $users->firstWhere('email', 'charlie@example.com');
-        $diana = $users->firstWhere('email', 'diana@example.com');
+        $diana = $users->firstWhere('email', 'kelvinramsiel@gmail.com');
         $eve = $users->firstWhere('email', 'eve@example.com');
         $frank = $users->firstWhere('email', 'frank@example.com');
 
