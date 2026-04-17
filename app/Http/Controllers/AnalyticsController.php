@@ -2,42 +2,22 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\SwipeEvent;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use App\Services\AnalyticsService;
+use Illuminate\Http\JsonResponse;
 
 class AnalyticsController extends Controller
 {
-    public function summary(Request $request)
+    public function __construct(
+        private AnalyticsService $analyticsService
+    ) {}
+
+    /**
+     * Get analytics summary for the authenticated user.
+     */
+    public function summary(): JsonResponse
     {
-        $user = $request->user();
+        $summary = $this->analyticsService->getSummary(auth()->user());
 
-        $swipeCounts = SwipeEvent::query()
-            ->where('user_id', $user->id)
-            ->whereIn('interaction_type', ['pass', 'like', 'super_like'])
-            ->select('interaction_type', DB::raw('count(*) as total'))
-            ->groupBy('interaction_type')
-            ->pluck('total', 'interaction_type');
-
-        $matchCount = SwipeEvent::query()
-            ->where('user_id', $user->id)
-            ->where('interaction_type', 'match')
-            ->count();
-
-        $likes = (int) ($swipeCounts['like'] ?? 0);
-        $superLikes = (int) ($swipeCounts['super_like'] ?? 0);
-        $passes = (int) ($swipeCounts['pass'] ?? 0);
-        $engaged = max(1, $likes + $superLikes);
-
-        return response()->json([
-            'swipes' => [
-                'pass' => $passes,
-                'like' => $likes,
-                'super_like' => $superLikes,
-                'total' => $passes + $likes + $superLikes,
-            ],
-            'matches' => $matchCount,
-            'match_rate' => round($matchCount / $engaged, 4),
-        ]);
+        return response()->json($summary);
     }
 }

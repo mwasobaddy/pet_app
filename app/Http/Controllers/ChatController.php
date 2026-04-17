@@ -4,59 +4,32 @@ namespace App\Http\Controllers;
 
 use App\Models\Conversation;
 use App\Models\PetMatch;
+use App\Services\ChatQueryService;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class ChatController extends Controller
 {
+    public function __construct(
+        private ChatQueryService $chatQueryService
+    ) {}
+
+    /**
+     * Get all conversations for the authenticated user.
+     */
     public function index(): Response
     {
-        $user = auth()->user();
-
-        $conversations = Conversation::query()
-            ->where('user_one_id', $user->id)
-            ->orWhere('user_two_id', $user->id)
-            ->with([
-                'userOne:id,first_name,other_names',
-                'userTwo:id,first_name,other_names',
-                'latestMessage:id,conversation_id,sender_id,body,media_type,created_at',
-            ])
-            ->withCount([
-                'messages as unread_count' => function ($query) use ($user) {
-                    $query->whereNull('read_at')
-                        ->where('sender_id', '!=', $user->id);
-                },
-            ])
-            ->orderByDesc('last_message_at')
-            ->get()
-            ->map(function (Conversation $conversation) use ($user) {
-                $other = $conversation->otherParticipant($user->id);
-
-                return [
-                    'id' => $conversation->id,
-                    'match_id' => $conversation->match_id,
-                    'last_message_at' => $conversation->last_message_at,
-                    'unread_count' => $conversation->unread_count,
-                    'other_user' => $other ? [
-                        'id' => $other->id,
-                        'name' => $other->name,
-                    ] : null,
-                    'latest_message' => $conversation->latestMessage ? [
-                        'id' => $conversation->latestMessage->id,
-                        'sender_id' => $conversation->latestMessage->sender_id,
-                        'body' => $conversation->latestMessage->body,
-                        'media_type' => $conversation->latestMessage->media_type,
-                        'created_at' => $conversation->latestMessage->created_at,
-                    ] : null,
-                ];
-            });
+        $conversations = $this->chatQueryService->getConversations(auth()->user());
 
         return Inertia::render('chat/index', [
             'conversations' => $conversations,
         ]);
     }
 
+    /**
+     * Show a specific conversation with all messages.
+     */
     public function show(Conversation $conversation): Response
     {
         $user = auth()->user();
@@ -71,22 +44,7 @@ class ChatController extends Controller
         ]);
 
         $other = $conversation->otherParticipant($user->id);
-
-        $messages = $conversation->messages()
-            ->with('sender:id,first_name,other_names')
-            ->orderBy('created_at')
-            ->get()
-            ->map(fn ($message) => [
-                'id' => $message->id,
-                'body' => $message->body,
-                'media_type' => $message->media_type,
-                'media_url' => $message->media_path ? asset("storage/{$message->media_path}") : null,
-                'sender_id' => $message->sender_id,
-                'sender_name' => $message->sender?->name,
-                'read_at' => $message->read_at,
-                'read_by_user_id' => $message->read_by_user_id,
-                'created_at' => $message->created_at,
-            ]);
+        $messages = $this->chatQueryService->getConversationMessages($conversation);
 
         return Inertia::render('chat/show', [
             'conversation' => [
@@ -101,6 +59,9 @@ class ChatController extends Controller
         ]);
     }
 
+    /**
+     * Find or create a conversation for a pet match and redirect.
+     */
     public function showByMatch(PetMatch $match): RedirectResponse
     {
         $user = auth()->user();
@@ -115,15 +76,7 @@ class ChatController extends Controller
             abort(403);
         }
 
-        [$userOneId, $userTwoId] = $userIds->sort()->values()->all();
-
-        $conversation = Conversation::firstOrCreate(
-            ['match_id' => $match->id],
-            [
-                'user_one_id' => $userOneId,
-                'user_two_id' => $userTwoId,
-            ]
-        );
+        $conversation = $this->chatQueryService->findOrCreateForMatch($match);
 
         return redirect()->route('chat.show', $conversation);
     }

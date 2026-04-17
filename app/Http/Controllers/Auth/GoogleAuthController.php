@@ -2,94 +2,46 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Actions\Auth\CreateOrUpdateUserFromGoogleAuth;
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 use Laravel\Socialite\Facades\Socialite;
 
 class GoogleAuthController extends Controller
 {
+    public function __construct(
+        private CreateOrUpdateUserFromGoogleAuth $createOrUpdateUser
+    ) {}
+
     /**
      * Redirect the user to the Google authentication page.
      */
-    public function redirect()
+    public function redirect(): RedirectResponse
     {
         return Socialite::driver('google')->redirect();
     }
 
     /**
-     * Obtain the user information from Google.
+     * Handle the OAuth callback and authenticate the user.
      */
-    public function callback()
+    public function callback(): RedirectResponse
     {
         try {
             $googleUser = Socialite::driver('google')->user();
-
-            $googleId = $googleUser->getId();
-            $email = $googleUser->getEmail();
-
-            $user = User::query()
-                ->where('google_id', $googleId)
-                ->orWhere('email', $email)
-                ->first();
-
-            if ($user === null) {
-                [$firstName, $otherNames] = $this->splitName($googleUser->getName());
-
-                $user = User::create([
-                    'first_name' => $firstName,
-                    'other_names' => $otherNames,
-                    'mobile_number' => null,
-                    'google_id' => $googleId,
-                    'email' => $email,
-                    'email_verified_at' => now(),
-                    'password' => Hash::make(Str::random(32)),
-                ]);
-
-                $user->assignRole('free_user');
-            } else {
-                $updates = [];
-
-                if (blank($user->google_id) && filled($googleId)) {
-                    $updates['google_id'] = $googleId;
-                }
-
-                if ($user->email_verified_at === null) {
-                    $updates['email_verified_at'] = now();
-                }
-
-                if ($updates !== []) {
-                    $user->forceFill($updates)->save();
-                }
-            }
+            $user = ($this->createOrUpdateUser)->execute($googleUser);
 
             Auth::login($user, remember: true);
 
             return redirect()->intended('/dashboard');
         } catch (\Exception $e) {
-            return redirect('/login')->with('error', 'Google authentication failed: '.$e->getMessage());
+            Log::error('Google authentication failed', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return redirect('/login')
+                ->with('error', 'Google authentication failed. Please try again.');
         }
-    }
-
-    /**
-     * Split a full name into first name and remaining names.
-     *
-     * @return array{0: string, 1: string|null}
-     */
-    private function splitName(?string $name): array
-    {
-        $safeName = trim((string) $name);
-
-        if ($safeName === '') {
-            return ['Google User', null];
-        }
-
-        $segments = preg_split('/\s+/', $safeName) ?: [];
-        $firstName = array_shift($segments) ?: 'Google User';
-        $otherNames = trim(implode(' ', $segments));
-
-        return [$firstName, $otherNames !== '' ? $otherNames : null];
     }
 }
