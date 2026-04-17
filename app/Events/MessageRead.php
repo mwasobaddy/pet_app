@@ -5,11 +5,11 @@ namespace App\Events;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class MessageRead implements ShouldBroadcast
+class MessageRead implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -17,15 +17,14 @@ class MessageRead implements ShouldBroadcast
      * Create a new event instance.
      */
     /**
-     * @param array<int, int> $messageIds
+     * @param  array<int, int>  $messageIds
      */
     public function __construct(
         public int $conversationId,
         public array $messageIds,
         public int $readerId,
         public string $readAt,
-    ) {
-    }
+    ) {}
 
     /**
      * Get the channels the event should broadcast on.
