@@ -1,24 +1,35 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import InputError from '@/components/input-error';
+import PasswordInput from '@/components/password-input';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { dashboard } from '@/routes';
+import profile from '@/routes/profile';
 
 export default function IncompleteProfile() {
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, patch, processing, errors } = useForm({
         first_name: '',
         other_names: '',
         mobile_number: '',
+        password: '',
+        password_confirmation: '',
     });
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(route('profile.update'), {
-            onSuccess: () => router.visit(route('dashboard')),
+        patch(profile.complete.url(), {
+            onSuccess: () => router.visit(dashboard.url()),
         });
     };
 
-    const isFormComplete = data.first_name && data.other_names;
+    const isFormComplete =
+        data.first_name &&
+        data.other_names &&
+        data.mobile_number &&
+        data.password &&
+        data.password_confirmation &&
+        data.password === data.password_confirmation;
 
     return (
         <>
@@ -120,24 +131,72 @@ export default function IncompleteProfile() {
                                             </span>
                                         </div>
                                         <p className="text-sm text-slate-500 dark:text-slate-400">
-                                            Optional – helps other pet owners reach you
+                                            We'll use this to keep your account secure
                                         </p>
                                     </div>
 
                                     <div className="grid gap-2">
                                         <Label htmlFor="mobile_number" className="text-sm font-medium">
-                                            Mobile Number
+                                            Mobile Number *
                                         </Label>
                                         <Input
                                             id="mobile_number"
                                             type="tel"
                                             name="mobile_number"
+                                            required
                                             placeholder="+1 (555) 000-0000"
                                             value={data.mobile_number}
                                             onChange={(e) => setData('mobile_number', e.target.value)}
                                             className="h-10 text-base"
                                         />
                                         <InputError message={errors.mobile_number} />
+                                    </div>
+
+                                    {/* Password */}
+                                    <div className="space-y-2 pt-2">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                                                Step 3
+                                            </span>
+                                            <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                                                Secure Your Account
+                                            </span>
+                                        </div>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                                            Create a password for future logins
+                                        </p>
+                                    </div>
+
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="password" className="text-sm font-medium">
+                                            Password *
+                                        </Label>
+                                        <PasswordInput
+                                            id="password"
+                                            name="password"
+                                            required
+                                            placeholder="Create a password"
+                                            value={data.password}
+                                            onChange={(e) => setData('password', e.target.value)}
+                                            className="h-10 text-base"
+                                        />
+                                        <InputError message={errors.password} />
+                                    </div>
+
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="password_confirmation" className="text-sm font-medium">
+                                            Confirm Password *
+                                        </Label>
+                                        <PasswordInput
+                                            id="password_confirmation"
+                                            name="password_confirmation"
+                                            required
+                                            placeholder="Confirm your password"
+                                            value={data.password_confirmation}
+                                            onChange={(e) => setData('password_confirmation', e.target.value)}
+                                            className="h-10 text-base"
+                                        />
+                                        <InputError message={errors.password_confirmation} />
                                     </div>
 
                                     {/* Submit Button */}
@@ -160,7 +219,7 @@ export default function IncompleteProfile() {
 
                                     {/* Helper Text */}
                                     <p className="text-xs text-slate-500 dark:text-slate-400 text-center">
-                                        First and last name are required to continue
+                                        First name, last name, mobile number, and password are required to continue
                                     </p>
                                 </form>
                             </div>
@@ -171,7 +230,7 @@ export default function IncompleteProfile() {
                             <p className="text-sm text-slate-600 dark:text-slate-400">
                                 Already completed your profile?{' '}
                                 <Link
-                                    href={route('dashboard')}
+                                    href={dashboard.url()}
                                     className="font-semibold text-blue-600 dark:text-blue-400 hover:underline transition-colors"
                                 >
                                     Go to dashboard
