@@ -21,7 +21,7 @@ test('new users can sign in with google', function () {
 
     $response = $this->get(route('auth.google.callback'));
 
-    $response->assertRedirect(route('dashboard', absolute: false));
+    $response->assertRedirect(route('profile.incomplete', absolute: false));
     $this->assertAuthenticated();
 
     $this->assertDatabaseHas('users', [
@@ -34,7 +34,8 @@ test('new users can sign in with google', function () {
     $user = User::query()->where('email', 'jane@example.com')->firstOrFail();
 
     expect($user->email_verified_at)->not->toBeNull();
-    expect($user->hasRole('free_user'))->toBeTrue();
+    expect($user->hasAnyRole('free_user', 'vip_user', 'svip_user'))->toBeFalse();
+    expect($user->password_set_at)->toBeNull();
 });
 
 test('existing users keep their profile data when they sign in with google', function () {

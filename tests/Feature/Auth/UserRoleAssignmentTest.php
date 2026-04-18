@@ -11,7 +11,7 @@ beforeEach(function () {
     Role::findOrCreate('free_user');
 });
 
-test('new user is assigned free user role on registration', function () {
+test('new user is not assigned a tier role on registration', function () {
     $response = $this->post(route('register.store'), [
         'first_name' => 'John',
         'other_names' => 'Doe',
@@ -24,7 +24,7 @@ test('new user is assigned free user role on registration', function () {
     $user = User::where('email', 'john@example.com')->first();
 
     expect($user)->not->toBeNull();
-    expect($user->hasRole('free_user'))->toBeTrue();
+    expect($user->hasAnyRole('free_user', 'vip_user', 'svip_user'))->toBeFalse();
 });
 
 test('user cannot have duplicate free user roles', function () {
@@ -50,8 +50,8 @@ test('registered user has free user role and can be authenticated', function () 
 
     $user = User::where('email', 'jane@example.com')->first();
 
-    // Verify user role is assigned
-    expect($user->hasRole('free_user'))->toBeTrue();
+    // Verify user is not assigned a tier until subscription selection
+    expect($user->hasAnyRole('free_user', 'vip_user', 'svip_user'))->toBeFalse();
 
     // Verify user is authenticated after registration
     expect($this->isAuthenticated())->toBeTrue();

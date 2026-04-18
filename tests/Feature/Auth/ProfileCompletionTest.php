@@ -15,13 +15,15 @@ beforeEach(function () {
 });
 
 test('users with incomplete profiles are redirected from dashboard', function () {
-    // Create user with missing first_name and other_names
+    // Create user with missing mobile_number
     $user = User::factory()->create([
-        'first_name' => null,
-        'other_names' => null,
+        'first_name' => 'Jane',
+        'other_names' => 'Doe',
         'mobile_number' => null,
+        'google_id' => 'google-123',
         'email' => 'jane@example.com',
         'email_verified_at' => now(),
+        'password_set_at' => null,
     ]);
 
     $user->assignRole('free_user');
@@ -37,9 +39,11 @@ test('users with complete profiles can access dashboard', function () {
     $user = User::factory()->create([
         'first_name' => 'John',
         'other_names' => 'Smith',
-        'mobile_number' => null, // Optional now
+        'mobile_number' => '555-1234',
+        'google_id' => 'google-456',
         'email' => 'john@example.com',
         'email_verified_at' => now(),
+        'password_set_at' => now(),
     ]);
 
     $user->assignRole('free_user');
@@ -62,11 +66,13 @@ test('users with complete profiles can access dashboard', function () {
 
 test('users can access profile edit page with incomplete profile', function () {
     $user = User::factory()->create([
-        'first_name' => null,
-        'other_names' => null,
+        'first_name' => 'Jane',
+        'other_names' => 'Doe',
         'mobile_number' => null,
+        'google_id' => 'google-789',
         'email' => 'jane@example.com',
         'email_verified_at' => now(),
+        'password_set_at' => null,
     ]);
 
     $user->assignRole('free_user');
@@ -80,11 +86,13 @@ test('users can access profile edit page with incomplete profile', function () {
 
 test('users can access incomplete profile page', function () {
     $user = User::factory()->create([
-        'first_name' => null,
-        'other_names' => null,
+        'first_name' => 'Jane',
+        'other_names' => 'Doe',
         'mobile_number' => null,
+        'google_id' => 'google-999',
         'email' => 'jane@example.com',
         'email_verified_at' => now(),
+        'password_set_at' => null,
     ]);
 
     $user->assignRole('free_user');
