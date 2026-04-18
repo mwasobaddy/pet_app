@@ -7,6 +7,7 @@ use App\Http\Controllers\MatchingController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\NotificationsController;
 use App\Http\Controllers\PetProfileController;
+use App\Http\Controllers\ProfileCompletionController;
 use App\Http\Controllers\SubscriptionController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
@@ -28,6 +29,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Incomplete profile page
     Route::inertia('profile/incomplete', 'profile/incomplete')->name('profile.incomplete');
+    Route::patch('profile/incomplete', [ProfileCompletionController::class, 'update'])->name('profile.complete');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
