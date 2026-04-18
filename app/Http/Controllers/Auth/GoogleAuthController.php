@@ -34,6 +34,10 @@ class GoogleAuthController extends Controller
 
             Auth::login($user, remember: true);
 
+            if ($this->requiresProfileCompletion($user)) {
+                return redirect()->route('profile.incomplete');
+            }
+
             return redirect()->intended('/dashboard');
         } catch (\Exception $e) {
             Log::error('Google authentication failed', [
@@ -43,5 +47,13 @@ class GoogleAuthController extends Controller
             return redirect('/login')
                 ->with('error', 'Google authentication failed. Please try again.');
         }
+    }
+
+    private function requiresProfileCompletion($user): bool
+    {
+        return blank($user->first_name)
+            || blank($user->other_names)
+            || blank($user->mobile_number)
+            || $user->password_set_at === null;
     }
 }
