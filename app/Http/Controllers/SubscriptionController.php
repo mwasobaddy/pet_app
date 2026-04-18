@@ -112,8 +112,7 @@ class SubscriptionController extends Controller
      */
     private function redirectToNextStep(User $user): RedirectResponse
     {
-        // Redirect to profile completion or dashboard
-        if (! $user->first_name || ! $user->other_names) {
+        if ($this->requiresProfileCompletion($user)) {
             return redirect()->route('profile.incomplete');
         }
 
@@ -122,5 +121,17 @@ class SubscriptionController extends Controller
         }
 
         return redirect()->route('dashboard');
+    }
+
+    private function requiresProfileCompletion(User $user): bool
+    {
+        if (blank($user->google_id)) {
+            return false;
+        }
+
+        return blank($user->first_name)
+            || blank($user->other_names)
+            || blank($user->mobile_number)
+            || $user->password_set_at === null;
     }
 }
