@@ -38,6 +38,7 @@ class CheckUserTier
         'subscription.payment',
         'subscription.complete',
         'profile.incomplete',
+        'profile.complete',
     ];
 
     public function handle(Request $request, Closure $next): Response

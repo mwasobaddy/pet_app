@@ -34,6 +34,7 @@ class CheckIncompleteProfile
         'two-factor.regenerate-recovery-codes',
         'two-factor.secret-key',
         'profile.incomplete',
+        'profile.complete',
         'profile.edit',
         'profile.update',
         'profile.destroy',
@@ -69,6 +70,10 @@ class CheckIncompleteProfile
 
         $user = auth()->user();
 
+        if (blank($user->google_id)) {
+            return $next($request);
+        }
+
         // Check if profile is incomplete
         if (! $this->isProfileComplete($user)) {
             return redirect()->route('profile.incomplete')
@@ -81,6 +86,8 @@ class CheckIncompleteProfile
     private function isProfileComplete($user): bool
     {
         return ! empty($user->first_name)
-            && ! empty($user->other_names);
+            && ! empty($user->other_names)
+            && ! empty($user->mobile_number)
+            && $user->password_set_at !== null;
     }
 }
