@@ -30,10 +30,8 @@ class CreateNewUser implements CreatesNewUsers
             'mobile_number' => $input['mobile_number'] ?? null,
             'email' => $input['email'],
             'password' => $input['password'],
+            'password_set_at' => now(),
         ]);
-
-        // Assign the free tier role to new users
-        $user->assignRole('free_user');
 
         return $user;
     }

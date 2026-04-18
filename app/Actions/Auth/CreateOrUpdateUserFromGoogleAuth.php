@@ -45,9 +45,8 @@ class CreateOrUpdateUserFromGoogleAuth
             'email' => $email,
             'email_verified_at' => now(),
             'password' => bcrypt(Str::random(32)),
+            'password_set_at' => null,
         ]);
-
-        $user->assignRole('free_user');
 
         return $user;
     }
