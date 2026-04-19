@@ -139,80 +139,101 @@ export default function ChatShow({ conversation, messages }: { conversation: Con
         <>
             <Head title={conversation.other_user?.name ? `Chat • ${conversation.other_user.name}` : 'Chat'} />
 
-            <div className="flex h-[calc(100vh-8rem)] flex-col rounded-xl border border-border bg-card">
-                <div className="border-b border-border p-4">
-                    <h2 className="text-lg font-semibold">
-                        {conversation.other_user?.name ?? 'Pet Owner'}
-                    </h2>
-                    {isTyping && (
-                        <p className="text-xs text-muted-foreground">Typing...</p>
-                    )}
-                </div>
-
-                <div ref={listRef} className="flex-1 space-y-4 overflow-y-auto p-4">
-                    {sortedItems.map((message) => {
-                        const isMine = message.sender_id === currentUserId;
-                        const showRead = isMine && message.read_at;
-
-                        return (
-                            <div key={message.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-                                <div className={`max-w-[70%] space-y-1 rounded-2xl px-4 py-2 text-sm ${isMine ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground'}`}>
-                                    {message.body && <p>{message.body}</p>}
-                                    {message.media_url && message.media_type?.startsWith('image') && (
-                                        <img
-                                            src={message.media_url}
-                                            alt="Attachment"
-                                            className="mt-2 max-h-64 rounded-lg object-cover"
-                                        />
-                                    )}
-                                    {message.media_url && message.media_type?.startsWith('video') && (
-                                        <video controls className="mt-2 max-h-64 rounded-lg">
-                                            <source src={message.media_url} type={message.media_type} />
-                                        </video>
-                                    )}
-                                    <div className="text-xs opacity-70">
-                                        {new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                        {showRead && ' • Read'}
-                                    </div>
-                                </div>
+            <div className="min-h-screen w-full bg-gradient-to-b from-orange-50/50 via-white to-pink-50/30 dark:from-gray-950 dark:via-gray-950 dark:to-gray-900">
+                <div className="max-w-4xl mx-auto h-[calc(100vh-4rem)] p-4 md:p-6">
+                    <div className="flex h-full flex-col rounded-2xl border-2 border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-xl">
+                        {/* Header */}
+                        <div className="flex items-center gap-4 border-b border-gray-200 dark:border-gray-700 p-4 bg-gradient-to-r from-orange-50/50 to-pink-50/50 dark:from-gray-800 dark:to-gray-800 rounded-t-2xl">
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-rose-500 flex items-center justify-center shadow-md">
+                                <span className="text-xl">🐾</span>
                             </div>
-                        );
-                    })}
-                </div>
+                            <div className="flex-1">
+                                <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                                    {conversation.other_user?.name ?? 'Pet Owner'}
+                                </h2>
+                                {isTyping && (
+                                    <p className="text-xs text-orange-500 font-medium animate-pulse">Typing...</p>
+                                )}
+                            </div>
+                        </div>
 
-                <div className="border-t border-border p-4">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                        <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground">
-                            <Paperclip className="h-4 w-4" />
-                            <span>Attach</span>
-                            <input
-                                type="file"
-                                className="hidden"
-                                onChange={(event) => setMedia(event.target.files?.[0] ?? null)}
-                                accept="image/*,video/*"
-                            />
-                        </label>
+                        {/* Messages */}
+                        <div ref={listRef} className="flex-1 space-y-4 overflow-y-auto p-4 bg-gradient-to-b from-transparent to-orange-50/30 dark:to-gray-900/30">
+                            {sortedItems.map((message) => {
+                                const isMine = message.sender_id === currentUserId;
+                                const showRead = isMine && message.read_at;
 
-                        <textarea
-                            value={messageBody}
-                            onChange={(event) => {
-                                setMessageBody(event.target.value);
-                                handleTyping();
-                            }}
-                            className="flex-1 rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                            rows={2}
-                            placeholder="Write a message..."
-                        />
+                                return (
+                                    <div key={message.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
+                                        <div className={`max-w-[70%] space-y-2 rounded-2xl px-4 py-3 text-sm shadow-md ${
+                                            isMine
+                                                ? 'bg-gradient-to-br from-orange-500 to-rose-500 text-white rounded-br-sm'
+                                                : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-bl-sm'
+                                        }`}>
+                                            {message.body && <p className="leading-relaxed">{message.body}</p>}
+                                            {message.media_url && message.media_type?.startsWith('image') && (
+                                                <img
+                                                    src={message.media_url}
+                                                    alt="Attachment"
+                                                    className="mt-2 max-h-64 rounded-lg object-cover shadow-md"
+                                                />
+                                            )}
+                                            {message.media_url && message.media_type?.startsWith('video') && (
+                                                <video controls className="mt-2 max-h-64 rounded-lg shadow-md">
+                                                    <source src={message.media_url} type={message.media_type} />
+                                                </video>
+                                            )}
+                                            <div className={`text-xs ${isMine ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'}`}>
+                                                {new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                {showRead && (
+                                                    <span className="ml-1">
+                                                        ✓ Read
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
 
-                        <button
-                            type="button"
-                            onClick={handleSend}
-                            disabled={isSending}
-                            className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
-                        >
-                            <Send className="h-4 w-4" />
-                            Send
-                        </button>
+                        {/* Input Area */}
+                        <div className="border-t border-gray-200 dark:border-gray-700 p-4 bg-white/50 dark:bg-gray-800/50 rounded-b-2xl">
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                                <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-500 dark:text-gray-400 hover:text-orange-500 dark:hover:text-orange-400 transition-colors">
+                                    <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-700 hover:bg-orange-100 dark:hover:bg-gray-600 transition-colors">
+                                        <Paperclip className="h-5 w-5" />
+                                    </div>
+                                    <input
+                                        type="file"
+                                        className="hidden"
+                                        onChange={(event) => setMedia(event.target.files?.[0] ?? null)}
+                                        accept="image/*,video/*"
+                                    />
+                                </label>
+
+                                <textarea
+                                    value={messageBody}
+                                    onChange={(event) => {
+                                        setMessageBody(event.target.value);
+                                        handleTyping();
+                                    }}
+                                    className="flex-1 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400/50 focus:border-orange-400 transition-all resize-none"
+                                    rows={2}
+                                    placeholder="Write a message..."
+                                />
+
+                                <button
+                                    type="button"
+                                    onClick={handleSend}
+                                    disabled={isSending}
+                                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-rose-500 px-6 py-3 text-sm font-bold text-white shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                                >
+                                    <Send className="h-5 w-5" />
+                                    Send
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
