@@ -58,10 +58,12 @@ class MessageWallPostFactory extends Factory
             'Someone\'s ready for dinner 🍽️',
         ];
 
+        $faker = $this->faker ?? $this->withFaker();
+
         $petProfileId = null;
         if (! empty($petProfiles)) {
-            $petProfileId = fake()->randomElement($petProfiles);
-        } elseif (fake()->boolean(50)) {
+            $petProfileId = $faker->randomElement($petProfiles);
+        } elseif ($faker->boolean(50)) {
             // 50% chance to create a new pet profile if none exist
             $petProfileId = PetProfile::factory()->create()->id;
         }
@@ -69,12 +71,12 @@ class MessageWallPostFactory extends Factory
         return [
             'user_id' => User::inRandomOrder()->first()?->id ?? User::factory(),
             'pet_profile_id' => $petProfileId,
-            'body' => fake()->randomElement($postContents),
-            'location' => fake()->randomElement($locations),
-            'likes_count' => fake()->numberBetween(0, 150),
-            'comments_count' => fake()->numberBetween(0, 25),
-            'shares_count' => fake()->numberBetween(0, 10),
-            'created_at' => fake()->dateTimeBetween('-30 days', 'now'),
+            'body' => $faker->randomElement($postContents),
+            'location' => $faker->randomElement($locations),
+            'likes_count' => $faker->numberBetween(0, 150),
+            'comments_count' => $faker->numberBetween(0, 25),
+            'shares_count' => $faker->numberBetween(0, 10),
+            'created_at' => $faker->dateTimeBetween('-30 days', 'now'),
         ];
     }
 }
