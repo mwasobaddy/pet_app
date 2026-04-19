@@ -1,10 +1,9 @@
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { Filter } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import messageWallRoutes from '@/routes/message-wall';
 import FeedFilters from './components/FeedFilters';
 import PostCard from './components/PostCard';
-import StoriesBar from './components/StoriesBar';
 import type {
     CommentCreatedEventPayload,
     FeedComment,
@@ -339,15 +338,29 @@ export default function Show() {
                                 onTagAdd={(tagId) => setSelectedTags((prev) => (prev.includes(tagId) ? prev : [...prev, tagId]))}
                                 onTagRemove={(tagId) => setSelectedTags((prev) => prev.filter((id) => id !== tagId))}
                             />
+                            <Link
+                                href="/feed/create"
+                                className="rounded-lg bg-gradient-to-r from-orange-500 to-pink-500 px-4 py-1.5 text-sm font-semibold text-white hover:shadow-lg transition-shadow"
+                            >
+                                Create Post
+                            </Link>
                         </div>
-                        <button
-                            type="button"
-                            onClick={() => setShowMobileFilters(!showMobileFilters)}
-                            className="flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300 md:hidden"
-                        >
-                            <Filter className="h-4 w-4" />
-                            Filters
-                        </button>
+                        <div className="flex items-center gap-2 md:hidden">
+                            <Link
+                                href="/feed/create"
+                                className="rounded-lg bg-gradient-to-r from-orange-500 to-pink-500 px-3 py-1.5 text-sm font-semibold text-white"
+                            >
+                                Create
+                            </Link>
+                            <button
+                                type="button"
+                                onClick={() => setShowMobileFilters(!showMobileFilters)}
+                                className="flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                            >
+                                <Filter className="h-4 w-4" />
+                                Filters
+                            </button>
+                        </div>
                     </div>
                 </header>
 
@@ -372,11 +385,6 @@ export default function Show() {
 
                 {/* Main Content - Centered Instagram Style */}
                 <main className="mx-auto max-w-2xl px-0 md:px-4">
-                    {/* Stories Bar */}
-                    <div className="py-4 md:rounded-xl md:border md:border-gray-200 md:bg-white md:p-4 md:shadow-sm dark:md:border-gray-800 dark:md:bg-black">
-                        <StoriesBar />
-                    </div>
-
                     {/* Posts Feed */}
                     <div className="space-y-0 md:space-y-4">
                         {loading && posts.length === 0 ? (
