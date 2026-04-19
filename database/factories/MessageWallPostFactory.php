@@ -23,42 +23,11 @@ class MessageWallPostFactory extends Factory
     {
         $petProfiles = PetProfile::pluck('id')->toArray();
 
-        $locations = [
-            'New York, NY',
-            'Los Angeles, CA',
-            'Chicago, IL',
-            'Houston, TX',
-            'Phoenix, AZ',
-            'Philadelphia, PA',
-            'San Antonio, TX',
-            'San Diego, CA',
-            'Dallas, TX',
-            'San Jose, CA',
-            'London, UK',
-            'Paris, France',
-            'Tokyo, Japan',
-            'Sydney, Australia',
-        ];
-
-        $postContents = [
-            'My beautiful pup just learned a new trick! So proud! 🐕',
-            'Lazy Sunday with my furry friend ❤️',
-            'Just adopted this cutie from the shelter! Already feels like home 🏠',
-            'Beach day with my best friend! 🏖️',
-            'First day at the dog park and we made friends already! 🐾',
-            'Nothing beats cuddles on a rainy day 🛋️',
-            'My cat knocked over my plant again... classic! 😅',
-            'Just took the perfect photo! What do you think? 📸',
-            'Morning walk was amazing today. The sunrise was incredible! 🌅',
-            'My pet got the zoomies! This is hilarious 😂',
-            'Grooming day! My pup looks so handsome now 💇',
-            'Just discovered this amazing dog park. Highly recommend! 🌳',
-            'Movie night with my furry companion 🍿',
-            'Training progress! We nailed the sit command today 👏',
-            'Someone\'s ready for dinner 🍽️',
-        ];
-
         $faker = $this->faker ?? $this->withFaker();
+
+        // Ensure $postContents and $locations are not null
+        $postContents = $postContents ?? ['Default post content'];
+        $locations = $locations ?? ['Default location'];
 
         $petProfileId = null;
         if (! empty($petProfiles)) {
