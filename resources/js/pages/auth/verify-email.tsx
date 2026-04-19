@@ -15,7 +15,7 @@ export default function VerifyEmail({ status }: { status?: string }) {
         <>
             <Head title="Email verification" />
 
-            <div className="min-h-screen w-full flex dark bg-gray-950">
+            <div className="min-h-screen w-full flex dark:bg-gray-950">
                 {/* Left Side - Decorative/Pet Illustration */}
                 <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
                     {/* Gradient Background */}

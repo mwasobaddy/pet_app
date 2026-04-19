@@ -18,7 +18,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
         <>
             <Head title="Forgot password" />
 
-            <div className="min-h-screen w-full flex dark bg-gray-950">
+            <div className="min-h-screen w-full flex dark:bg-gray-950">
                 {/* Left Side - Decorative/Pet Illustration */}
                 <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
                     {/* Gradient Background */}
@@ -127,7 +127,6 @@ export default function ForgotPassword({ status }: { status?: string }) {
                                                 autoComplete="off"
                                                 autoFocus
                                                 placeholder="hello@example.com"
-                                                className="h-12 rounded-xl border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:border-orange-400 focus:ring-orange-400/20"
                                             />
                                             <InputError message={errors.email} />
                                         </div>

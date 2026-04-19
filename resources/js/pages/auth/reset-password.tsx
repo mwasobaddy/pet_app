@@ -25,7 +25,7 @@ export default function ResetPassword({ token, email }: Props) {
         <>
             <Head title="Reset password" />
 
-            <div className="min-h-screen w-full flex dark bg-gray-950">
+            <div className="min-h-screen w-full flex dark:bg-gray-950">
                 {/* Left Side - Decorative/Pet Illustration */}
                 <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
                     {/* Gradient Background */}
@@ -148,7 +148,6 @@ export default function ResetPassword({ token, email }: Props) {
                                                 autoComplete="new-password"
                                                 autoFocus
                                                 placeholder="Enter new password"
-                                                className="h-12 rounded-xl border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:border-orange-400 focus:ring-orange-400/20"
                                             />
                                             <InputError message={errors.password} />
                                         </div>
@@ -163,7 +162,6 @@ export default function ResetPassword({ token, email }: Props) {
                                                 name="password_confirmation"
                                                 autoComplete="new-password"
                                                 placeholder="Confirm new password"
-                                                className="h-12 rounded-xl border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:border-orange-400 focus:ring-orange-400/20"
                                             />
                                             <InputError message={errors.password_confirmation} />
                                         </div>

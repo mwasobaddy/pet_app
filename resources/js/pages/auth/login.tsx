@@ -33,7 +33,7 @@ export default function Login({
         <>
             <Head title="Log in" />
 
-            <div className="min-h-screen w-full flex dark bg-gray-950">
+            <div className="min-h-screen w-full flex dark:bg-gray-950">
                 {/* Left Side - Decorative/Pet Illustration */}
                 <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
                     {/* Gradient Background */}
@@ -178,7 +178,6 @@ export default function Login({
                                                     tabIndex={1}
                                                     autoComplete="email"
                                                     placeholder="hello@example.com"
-                                                    className="h-12 rounded-xl border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:border-orange-400 focus:ring-orange-400/20 transition-all duration-200 pl-4"
                                                 />
                                             </div>
                                             <InputError message={errors.email} />
@@ -207,7 +206,6 @@ export default function Login({
                                                 tabIndex={2}
                                                 autoComplete="current-password"
                                                 placeholder="Enter your password"
-                                                className="h-12 rounded-xl border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:border-orange-400 focus:ring-orange-400/20"
                                             />
                                             <InputError message={errors.password} />
                                         </div>

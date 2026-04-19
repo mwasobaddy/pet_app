@@ -21,7 +21,7 @@ export default function Register() {
         <>
             <Head title="Register" />
 
-            <div className="min-h-screen w-full flex dark bg-gray-950">
+            <div className="min-h-screen w-full flex dark:bg-gray-950">
                 {/* Left Side - Decorative/Pet Illustration */}
                 <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
                     {/* Gradient Background */}
@@ -167,7 +167,6 @@ export default function Register() {
                                                     autoComplete="given-name"
                                                     name="first_name"
                                                     placeholder="John"
-                                                    className="h-12 rounded-xl border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:border-orange-400 focus:ring-orange-400/20"
                                                 />
                                                 <InputError message={errors.first_name} />
                                             </div>
@@ -183,7 +182,6 @@ export default function Register() {
                                                     autoComplete="family-name"
                                                     name="other_names"
                                                     placeholder="Doe"
-                                                    className="h-12 rounded-xl border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:border-orange-400 focus:ring-orange-400/20"
                                                 />
                                                 <InputError message={errors.other_names} />
                                             </div>
@@ -201,7 +199,6 @@ export default function Register() {
                                                 autoComplete="tel"
                                                 name="mobile_number"
                                                 placeholder="+1 234 567 890"
-                                                className="h-12 rounded-xl border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:border-orange-400 focus:ring-orange-400/20"
                                             />
                                             <InputError message={errors.mobile_number} />
                                         </div>
@@ -219,7 +216,6 @@ export default function Register() {
                                                 autoComplete="email"
                                                 name="email"
                                                 placeholder="hello@example.com"
-                                                className="h-12 rounded-xl border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:border-orange-400 focus:ring-orange-400/20"
                                             />
                                             <InputError message={errors.email} />
                                         </div>
@@ -237,7 +233,6 @@ export default function Register() {
                                                     autoComplete="new-password"
                                                     name="password"
                                                     placeholder="••••••••"
-                                                    className="h-12 rounded-xl border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:border-orange-400 focus:ring-orange-400/20"
                                                 />
                                                 <InputError message={errors.password} />
                                             </div>
@@ -253,7 +248,6 @@ export default function Register() {
                                                     autoComplete="new-password"
                                                     name="password_confirmation"
                                                     placeholder="••••••••"
-                                                    className="h-12 rounded-xl border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:border-orange-400 focus:ring-orange-400/20"
                                                 />
                                                 <InputError message={errors.password_confirmation} />
                                             </div>
