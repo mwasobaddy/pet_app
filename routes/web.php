@@ -5,6 +5,8 @@ use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\MatchingController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\MessageWallController;
+use App\Http\Controllers\MessageWallInteractionController;
 use App\Http\Controllers\NotificationsController;
 use App\Http\Controllers\PetProfileController;
 use App\Http\Controllers\ProfileCompletionController;
@@ -72,6 +74,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('{conversation}', [ChatController::class, 'show'])->name('show');
         Route::post('{conversation}/messages', [MessageController::class, 'store'])->name('messages.store');
         Route::post('{conversation}/read', [MessageController::class, 'markRead'])->name('messages.read');
+    });
+
+    // Message Wall Routes (API)
+    Route::prefix('api/message-wall')->name('message-wall.')->group(function () {
+        Route::get('/', [MessageWallController::class, 'index'])->name('index');
+        Route::post('posts', [MessageWallController::class, 'store'])->name('posts.store');
+        Route::post('posts/{messageWallPost}/like', [MessageWallInteractionController::class, 'like'])->name('posts.like');
+        Route::post('posts/{messageWallPost}/comment', [MessageWallInteractionController::class, 'comment'])->name('posts.comment');
+        Route::post('posts/{messageWallPost}/share', [MessageWallInteractionController::class, 'share'])->name('posts.share');
+        Route::post('posts/{messageWallPost}/save', [MessageWallInteractionController::class, 'save'])->name('posts.save');
+        Route::post('users/{user}/follow', [MessageWallInteractionController::class, 'follow'])->name('users.follow');
     });
 });
 

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -59,6 +60,36 @@ class User extends Authenticatable
     public function conversationsAsUserTwo(): HasMany
     {
         return $this->hasMany(Conversation::class, 'user_two_id');
+    }
+
+    public function messageWallPosts(): HasMany
+    {
+        return $this->hasMany(MessageWallPost::class);
+    }
+
+    public function messageWallComments(): HasMany
+    {
+        return $this->hasMany(MessageWallComment::class);
+    }
+
+    public function followingUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            User::class,
+            'user_follows',
+            'follower_id',
+            'following_id'
+        );
+    }
+
+    public function followers(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            User::class,
+            'user_follows',
+            'following_id',
+            'follower_id'
+        );
     }
 
     public function currentTier(): ?Tier

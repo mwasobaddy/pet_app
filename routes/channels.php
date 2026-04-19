@@ -16,3 +16,7 @@ Broadcast::channel('chat.{conversationId}', function ($user, $conversationId) {
 
     return $conversation->hasUser($user->id);
 });
+
+Broadcast::channel('message-wall.feed', function ($user) {
+    return $user !== null;
+});

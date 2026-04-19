@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -31,5 +30,8 @@ class DatabaseSeeder extends Seeder
 
         // Seed pet interactions and matches for testing swipe functionality
         $this->call(PetInteractionSeeder::class);
+
+        // Seed message wall data (posts, comments, interactions, follows)
+        $this->call(MessageWallSeeder::class);
     }
 }
