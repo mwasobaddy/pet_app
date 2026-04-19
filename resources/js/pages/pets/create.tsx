@@ -2,7 +2,7 @@ import { Form, Head, router } from '@inertiajs/react';
 import { Upload } from 'lucide-react';
 import { useState } from 'react';
 import PetProfileController from '@/actions/App/Http/Controllers/PetProfileController';
-import Heading from '@/components/heading';
+// import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -55,7 +55,8 @@ export default function CreatePet({
                     {/* Form Card */}
                     <div className="rounded-2xl border-2 border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm p-6 md:p-8 shadow-xl">
                         <Form
-                            {...PetProfileController.store.form()}
+                            action={PetProfileController.store.url()}
+                            method="post"
                             options={{
                                 preserveScroll: true,
                             }}

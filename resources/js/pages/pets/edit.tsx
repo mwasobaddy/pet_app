@@ -1,6 +1,6 @@
 import { Form, Head, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
-import Heading from '@/components/heading';
+// import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';

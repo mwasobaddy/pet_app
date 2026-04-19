@@ -1,6 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { Link as InertiaLink } from '@inertiajs/react';
-import Heading from '@/components/heading';
+// import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import pets from '@/routes/pets';
 
