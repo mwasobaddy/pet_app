@@ -1,9 +1,7 @@
 import { Head } from '@inertiajs/react';
 import { useState } from 'react';
 import messageWallRoutes from '@/routes/message-wall';
-import LeftSidebar from './components/LeftSidebar';
 import PostComposer from './components/PostComposer';
-import RightSidebar from './components/RightSidebar';
 
 export default function Create() {
     const [newPostBody, setNewPostBody] = useState('');
@@ -60,13 +58,15 @@ export default function Create() {
         <>
             <Head title="Create Post" />
 
-            <div className="min-h-screen bg-linear-to-br from-orange-50/40 via-white to-pink-50/20 px-4 py-6 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 md:px-6">
-                <div className="mx-auto flex max-w-7xl gap-6">
-                    {/* Left Sidebar */}
-                    <LeftSidebar />
+            <div className="min-h-screen bg-gray-50 py-4 dark:bg-black md:py-8">
+                <main className="mx-auto max-w-2xl px-4">
+                    <div className="mb-6">
+                        <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
+                            Create a Post
+                        </h1>
+                    </div>
 
-                    {/* Main Content */}
-                    <main className="flex-1 space-y-6">
+                    <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-900">
                         <PostComposer
                             newPostBody={newPostBody}
                             newPostLocation={newPostLocation}
@@ -78,25 +78,9 @@ export default function Create() {
                             onUpdateMedia={setNewPostMedia}
                             onSubmit={submitPost}
                         />
-                    </main>
-
-                    {/* Right Sidebar */}
-                    <RightSidebar />
-                </div>
+                    </div>
+                </main>
             </div>
         </>
     );
 }
-
-Create.layout = {
-    breadcrumbs: [
-        {
-            title: 'Feed',
-            href: '/feed',
-        },
-        {
-            title: 'Create Post',
-            href: '/feed/create',
-        },
-    ],
-};
