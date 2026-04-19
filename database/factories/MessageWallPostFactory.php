@@ -25,9 +25,31 @@ class MessageWallPostFactory extends Factory
 
         $faker = $this->faker ?? $this->withFaker();
 
-        // Ensure $postContents and $locations are not null
-        $postContents = $postContents ?? ['Default post content'];
-        $locations = $locations ?? ['Default location'];
+        $postContents = [
+            'Just adopted a new puppy!',
+            'My cat learned a new trick today.',
+            'Does anyone have tips for training parrots?',
+            'Took my dog to the park and he loved it!',
+            'Looking for a good vet in my area.',
+            'My rabbit is so fluffy!',
+            'Check out my new aquarium setup.',
+            'Does anyone want to join a pet meetup?',
+            'My hamster escaped again!',
+            'Best treats for senior dogs?',
+        ];
+
+        $locations = [
+            'New York, NY',
+            'Los Angeles, CA',
+            'Chicago, IL',
+            'Houston, TX',
+            'Phoenix, AZ',
+            'Philadelphia, PA',
+            'San Antonio, TX',
+            'San Diego, CA',
+            'Dallas, TX',
+            'San Jose, CA',
+        ];
 
         $petProfileId = null;
         if (! empty($petProfiles)) {
