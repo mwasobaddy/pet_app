@@ -1,5 +1,5 @@
 import { Head, usePage } from '@inertiajs/react';
-import { Filter, Heart, MapPin, Search, Sparkles } from 'lucide-react';
+import { Filter, Heart, MapPin, Search } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import MatchModal from '@/components/match-modal';
 import SwipeCard from '@/components/swipe-card';
@@ -285,36 +285,8 @@ export default function Discover() {
                 </div>
 
                 {/* Main Content */}
-                <div className="relative z-10">
-                    <div className="mx-auto flex w-full max-w-6xl flex-col px-4 pb-16 pt-6 lg:px-6">
-                        {/* Center - Main Swipe Area */}
-                        {/* CTA Banner */}
-                        <div className="mb-6 relative overflow-hidden rounded-3xl bg-gradient-to-br from-orange-500 via-pink-500 to-rose-500 p-6 shadow-2xl">
-                            <div className="absolute inset-0 opacity-20">
-                                <div className="absolute -right-10 -top-10 text-9xl">🐾</div>
-                                <div className="absolute right-20 bottom-0 text-6xl opacity-50">🐕</div>
-                                <div className="absolute left-1/2 top-1/2 text-5xl opacity-30">🐱</div>
-                            </div>
-                            <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                                <div>
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <Sparkles className="h-4 w-4 text-yellow-300" />
-                                        <span className="text-xs font-bold uppercase tracking-widest text-white/80">Ready to explore?</span>
-                                    </div>
-                                    <h2 className="text-xl sm:text-2xl font-bold text-white">
-                                        {filteredRecommendations.length > 0
-                                            ? `${filteredRecommendations.length} pets nearby are waiting!`
-                                            : 'Start swiping to find matches!'}
-                                    </h2>
-                                </div>
-                                <button
-                                    onClick={() => document.querySelector('[data-scroll-to="swipe-area"]')?.scrollIntoView({ behavior: 'smooth' })}
-                                    className="px-6 py-2.5 rounded-xl bg-white text-orange-600 font-bold hover:bg-orange-50 transition shadow-lg hover:shadow-xl active:scale-95"
-                                >
-                                    Start Swiping
-                                </button>
-                            </div>
-                        </div>
+                <div className="relative h-full w-full">
+                    <div className="mx-auto flex h-full w-full max-w-6xl flex-col px-4 pb-16 pt-6 lg:px-6">
 
                         {/* Filters Bar */}
                         <div className="mb-6 flex flex-wrap items-center gap-3">
@@ -525,10 +497,10 @@ export default function Discover() {
                         </div>
 
                         {/* Mobile Swipe Area */}
-                        <div className="lg:hidden">
-                            <div className="relative min-h-[500px] flex flex-col items-center justify-center rounded-3xl bg-gradient-to-br from-white via-orange-50/50 to-pink-50/50 dark:from-gray-900 dark:via-gray-900/50 dark:to-gray-800/50 shadow-2xl border border-white/50 dark:border-gray-700/50 p-8">
+                        <div className="lg:hidden flex-1">
+                            <div className="relative h-full min-h-[500px] flex flex-col items-center justify-center">
                                 {hasRecommendations && currentPet ? (
-                                    <div className="w-full max-w-md">
+                                    <div className="w-full h-full md:max-w-md">
                                         <SwipeCard
                                             id={currentPet.id}
                                             name={currentPet.name}

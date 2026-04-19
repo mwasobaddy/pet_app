@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
 import { X, Heart, Star } from 'lucide-react';
+import { useState, useRef } from 'react';
 
 interface Image {
     id: number;
@@ -44,7 +44,9 @@ export default function SwipeCard({ id, name, age, gender, description, pet_type
     };
 
     const handleTouchEnd = () => {
-        if (!touchStart || !touchEnd) return;
+        if (!touchStart || !touchEnd) {
+            return;
+        }
         
         const distance = touchStart - touchEnd;
         const isLeftSwipe = distance > 50;
@@ -77,10 +79,10 @@ export default function SwipeCard({ id, name, age, gender, description, pet_type
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
             onTouchMove={handleTouchMove}
-            className="relative w-full max-w-md h-96 bg-white rounded-2xl shadow-xl overflow-hidden mb-6 cursor-grab active:cursor-grabbing"
+            className="relative w-full h-full md:max-w-md lg:h-96 bg-white rounded-2xl shadow-xl overflow-hidden mb-6 cursor-grab active:cursor-grabbing"
         >
             {/* Image Container */}
-            <div className="relative w-full h-64 bg-gradient-to-br from-gray-200 to-gray-300">
+            <div className="relative w-full h-3/4 bg-gradient-to-br from-gray-200 to-gray-300">
                 {currentImage && (
                     <img
                         src={currentImage.url}
