@@ -14,17 +14,15 @@ interface Tier {
 }
 
 export default function PaymentPage({ tier, paymentMethods, cycles }: { tier: Tier; paymentMethods: string[]; cycles: string[] }) {
-    const { post, processing } = useForm();
     const [selectedCycle, setSelectedCycle] = useState<string>('monthly');
     const [selectedMethod, setSelectedMethod] = useState<string>(paymentMethods[0] || 'paypal');
+    const { data, post, processing, setData } = useForm({
+        payment_method: paymentMethods[0] || 'paypal',
+        subscription_cycle: 'monthly',
+    });
 
     const handlePayment = () => {
-        post(subscription.complete.url({ tier: tier.id }), {
-            data: {
-                payment_method: selectedMethod,
-                subscription_cycle: selectedCycle,
-            }
-        });
+        post(subscription.complete.url({ tier: tier.id }));
     };
 
     const calculatePrice = (cycle: string): number => {
@@ -76,12 +74,18 @@ export default function PaymentPage({ tier, paymentMethods, cycles }: { tier: Ti
                                     {SUBSCRIPTION_CYCLES.map((cycle) => (
                                         cycles.includes(cycle.value) ? (
                                             <div key={cycle.value} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted cursor-pointer"
-                                                 onClick={() => setSelectedCycle(cycle.value)}>
+                                                 onClick={() => {
+                                                setSelectedCycle(cycle.value);
+                                                setData('subscription_cycle', cycle.value);
+                                            }}>
                                                 <input
                                                     type="radio"
                                                     name="subscription_cycle"
                                                     checked={selectedCycle === cycle.value}
-                                                    onChange={() => setSelectedCycle(cycle.value)}
+                                                    onChange={() => {
+                                                    setSelectedCycle(cycle.value);
+                                                    setData('subscription_cycle', cycle.value);
+                                                }}
                                                     className="h-4 w-4"
                                                 />
                                                 <div className="flex-1">
@@ -111,12 +115,18 @@ export default function PaymentPage({ tier, paymentMethods, cycles }: { tier: Ti
                                     {PAYMENT_METHODS.map((method) => (
                                         paymentMethods.includes(method.id) ? (
                                             <div key={method.id} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted cursor-pointer"
-                                                 onClick={() => setSelectedMethod(method.id)}>
+                                                 onClick={() => {
+                                                     setSelectedMethod(method.id);
+                                                     setData('payment_method', method.id);
+                                                 }}>
                                                 <input
                                                     type="radio"
                                                     name="payment_method"
                                                     checked={selectedMethod === method.id}
-                                                    onChange={() => setSelectedMethod(method.id)}
+                                                    onChange={() => {
+                                                    setSelectedMethod(method.id);
+                                                    setData('payment_method', method.id);
+                                                }}
                                                     className="h-4 w-4"
                                                 />
                                                 <div className="flex-1">
