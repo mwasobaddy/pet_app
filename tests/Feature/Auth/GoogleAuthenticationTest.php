@@ -56,7 +56,7 @@ test('existing users keep their profile data when they sign in with google', fun
 
     $response = $this->get(route('auth.google.callback'));
 
-    $response->assertRedirect(route('dashboard', absolute: false));
+    $response->assertRedirect(route('discover', absolute: false));
     $this->assertAuthenticatedAs($existingUser);
 
     $existingUser->refresh();
@@ -87,7 +87,7 @@ test('repeat google logins do not modify existing user profile fields', function
 
     $response = $this->get(route('auth.google.callback'));
 
-    $response->assertRedirect(route('dashboard', absolute: false));
+    $response->assertRedirect(route('discover', absolute: false));
     $this->assertAuthenticatedAs($existingUser);
 
     $existingUser->refresh();

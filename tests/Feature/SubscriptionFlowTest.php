@@ -52,7 +52,7 @@ test('free tier store completes without payment route redirect', function () {
     $response = $this->actingAs($user)
         ->post(route('subscription.store', $tier));
 
-    $response->assertRedirect(route('dashboard'));
+    $response->assertRedirect(route('discover'));
 
     $subscription = Subscription::where('user_id', $user->id)
         ->where('tier_id', $tier->id)

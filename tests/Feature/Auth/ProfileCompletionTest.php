@@ -14,7 +14,7 @@ beforeEach(function () {
     PetType::create(['name' => 'Dog', 'icon' => '🐕']);
 });
 
-test('users with incomplete profiles are redirected from dashboard', function () {
+test('users with incomplete profiles are redirected from discover', function () {
     // Create user with missing mobile_number
     $user = User::factory()->create([
         'first_name' => 'Jane',
@@ -28,14 +28,14 @@ test('users with incomplete profiles are redirected from dashboard', function ()
 
     $user->assignRole('free_user');
 
-    $response = $this->actingAs($user)->get(route('dashboard'));
+    $response = $this->actingAs($user)->get(route('discover'));
 
     // Should redirect to profile.incomplete
     $response->assertRedirect(route('profile.incomplete'));
     $response->assertSessionHas('warning', 'Please complete your profile to continue.');
 });
 
-test('users with complete profiles can access dashboard', function () {
+test('users with complete profiles can access discover', function () {
     $user = User::factory()->create([
         'first_name' => 'John',
         'other_names' => 'Smith',
@@ -48,7 +48,7 @@ test('users with complete profiles can access dashboard', function () {
 
     $user->assignRole('free_user');
 
-    // Create a pet profile so user can access dashboard
+    // Create a pet profile so user can access discover
     PetProfile::create([
         'user_id' => $user->id,
         'pet_type_id' => PetType::first()->id,
@@ -58,9 +58,9 @@ test('users with complete profiles can access dashboard', function () {
         'description' => 'A friendly dog',
     ]);
 
-    $response = $this->actingAs($user)->get(route('dashboard'));
+    $response = $this->actingAs($user)->get(route('discover'));
 
-    // Should access dashboard successfully
+    // Should access discover successfully
     $response->assertOk();
 });
 

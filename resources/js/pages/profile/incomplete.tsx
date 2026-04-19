@@ -4,7 +4,7 @@ import PasswordInput from '@/components/password-input';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { dashboard } from '@/routes';
+import { discover } from '@/routes';
 import profile from '@/routes/profile';
 
 export default function IncompleteProfile() {
@@ -19,7 +19,7 @@ export default function IncompleteProfile() {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         patch(profile.complete.url(), {
-            onSuccess: () => router.visit(dashboard.url()),
+            onSuccess: () => router.visit(discover.url()),
         });
     };
 
@@ -230,10 +230,10 @@ export default function IncompleteProfile() {
                             <p className="text-sm text-slate-600 dark:text-slate-400">
                                 Already completed your profile?{' '}
                                 <Link
-                                    href={dashboard.url()}
+                                    href={discover.url()}
                                     className="font-semibold text-blue-600 dark:text-blue-400 hover:underline transition-colors"
                                 >
-                                    Go to dashboard
+                                    Go to discover
                                 </Link>
                             </p>
                         </div>

@@ -9,11 +9,11 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 test('guests are redirected to the login page', function () {
-    $response = $this->get(route('dashboard'));
+    $response = $this->get(route('discover'));
     $response->assertRedirect(route('login'));
 });
 
-test('authenticated users can visit the dashboard', function () {
+test('authenticated users can visit the discover', function () {
     $tier = Tier::create([
         'name' => 'Free',
         'slug' => 'free',
@@ -49,6 +49,6 @@ test('authenticated users can visit the dashboard', function () {
 
     $this->actingAs($user);
 
-    $response = $this->get(route('dashboard'));
+    $response = $this->get(route('discover'));
     $response->assertOk();
 });
