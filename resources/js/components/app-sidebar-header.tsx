@@ -9,8 +9,7 @@ export function AppSidebarHeader({
 }) {
     const isHiddenRoute =
         typeof window !== 'undefined' &&
-        (window.location.pathname === '/discover' ||
-            window.location.pathname === '/feed');
+        (window.location.pathname === '/discover');
 
     return (
         <header
