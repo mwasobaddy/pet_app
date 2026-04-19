@@ -13,20 +13,20 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard } from '@/routes';
+import { discover, feed } from '@/routes';
 import * as petsRoutes from '@/routes/pets';
 import * as profileRoutes from '@/routes/profile';
 import type { NavItem } from '@/types';
 
 const mainNavItems: NavItem[] = [
     {
-        title: 'Dashboard',
-        href: dashboard().url,
+        title: 'Discover',
+        href: discover().url,
         icon: LayoutGrid,
     },
     {
-        title: 'Matches',
-        href: dashboard().url + '#matches',
+        title: 'Feed',
+        href: feed().url,
         icon: Heart,
     },
     {
@@ -66,7 +66,7 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href={dashboard().url} prefetch>
+                            <Link href={discover().url} prefetch>
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>
