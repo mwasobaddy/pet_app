@@ -58,9 +58,17 @@ class MessageWallPostFactory extends Factory
             'Someone\'s ready for dinner 🍽️',
         ];
 
+        $petProfileId = null;
+        if (!empty($petProfiles)) {
+            $petProfileId = $this->faker->randomElement($petProfiles);
+        } elseif ($this->faker->boolean(50)) {
+            // 50% chance to create a new pet profile if none exist
+            $petProfileId = PetProfile::factory()->create()->id;
+        }
+
         return [
             'user_id' => User::inRandomOrder()->first()?->id ?? User::factory(),
-            'pet_profile_id' => ! empty($petProfiles) ? $this->faker->randomElement($petProfiles) : PetProfile::factory(),
+            'pet_profile_id' => $petProfileId,
             'body' => $this->faker->randomElement($postContents),
             'location' => $this->faker->randomElement($locations),
             'likes_count' => $this->faker->numberBetween(0, 150),
