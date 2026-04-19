@@ -1,9 +1,8 @@
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
+import { ArrowLeft } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import messageWallRoutes from '@/routes/message-wall';
-import LeftSidebar from '../components/LeftSidebar';
 import PostCard from '../components/PostCard';
-import RightSidebar from '../components/RightSidebar';
 import type {
     CommentCreatedEventPayload,
     FeedComment,
@@ -211,20 +210,24 @@ export default function Show({ post: initialPost }: ShowProps) {
         <>
             <Head title={`Post by ${post.user_name}`} />
 
-            <div className="min-h-screen bg-linear-to-br from-orange-50/40 via-white to-pink-50/20 px-4 py-6 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 md:px-6">
-                <div className="mx-auto flex max-w-7xl gap-6">
-                    {/* Left Sidebar */}
-                    <LeftSidebar />
+            <div className="min-h-screen bg-gray-50 py-4 dark:bg-black md:py-6">
+                <div className="mx-auto max-w-2xl px-4">
+                    {/* Back Button / Header */}
+                    <div className="mb-6 flex items-center justify-between">
+                        <Link
+                            href="/feed"
+                            className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                        >
+                            <ArrowLeft className="h-4 w-4" />
+                            Back to Feed
+                        </Link>
+                        <h1 className="text-sm font-semibold text-gray-600 dark:text-gray-400">
+                            Post Details
+                        </h1>
+                    </div>
 
-                    {/* Main Content */}
-                    <main className="flex-1 space-y-6">
-                        <div className="rounded-2xl border border-gray-200 bg-white/90 p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900/90">
-                            <h1 className="text-xl font-bold text-gray-900 dark:text-white">Post Details</h1>
-                            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                                View and engage with this post
-                            </p>
-                        </div>
-
+                    {/* Post Card - Facebook Style */}
+                    <div className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900">
                         <PostCard
                             post={post}
                             commentDrafts={commentDrafts}
@@ -239,25 +242,12 @@ export default function Show({ post: initialPost }: ShowProps) {
                             onSetActiveReply={setActiveReplyCommentId}
                             formatTime={formatTime}
                         />
-                    </main>
+                    </div>
 
-                    {/* Right Sidebar */}
-                    <RightSidebar />
+                    {/* Spacing at bottom for mobile */}
+                    <div className="mt-6" />
                 </div>
             </div>
         </>
     );
 }
-
-Show.layout = {
-    breadcrumbs: [
-        {
-            title: 'Feed',
-            href: '/feed',
-        },
-        {
-            title: 'Post',
-            href: '/feed/comments/show',
-        },
-    ],
-};

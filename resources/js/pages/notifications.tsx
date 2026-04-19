@@ -1,8 +1,7 @@
-import AppLayout from '@/layouts/app';
-import type { Notification } from '@/types';
-import { Head, router } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
+import { Heart, MessageCircle, PawPrint, User } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Heart, MessageCircle, Pet, User } from 'lucide-react';
+import type { Notification } from '@/types';
 
 export default function Notifications() {
     const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -56,7 +55,7 @@ export default function Notifications() {
             case 'message_wall_comment_reply':
                 return <MessageCircle className="h-5 w-5 fill-green-500 text-green-500" />;
             case 'match':
-                return <Pet className="h-5 w-5 fill-purple-500 text-purple-500" />;
+                return <PawPrint className="h-5 w-5 fill-purple-500 text-purple-500" />;
             default:
                 return <User className="h-5 w-5" />;
         }
@@ -68,8 +67,10 @@ export default function Notifications() {
         }
 
         const { data } = notification;
+
+        // Navigate to the post detail page (like Facebook)
         if (data.post_id) {
-            router.visit(`/feed`);
+            window.location.href = `/feed/comments/${data.post_id}`;
         }
     };
 
@@ -78,25 +79,40 @@ export default function Notifications() {
         const now = new Date();
         const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
-        if (seconds < 60) return 'Just now';
-        if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-        if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-        if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
+        if (seconds < 60) {
+return 'Just now';
+}
+
+        if (seconds < 3600) {
+return `${Math.floor(seconds / 60)}m ago`;
+}
+
+        if (seconds < 86400) {
+return `${Math.floor(seconds / 3600)}h ago`;
+}
+
+        if (seconds < 604800) {
+return `${Math.floor(seconds / 86400)}d ago`;
+}
+
         return date.toLocaleDateString();
     };
 
     return (
         <>
             <Head title="Notifications" />
-            <AppLayout breadcrumbs={[{ title: 'Notifications' }]}>
-                <div className="mx-auto max-w-2xl px-4 py-6">
+
+            <div className="min-h-screen bg-gray-50 py-4 dark:bg-black md:py-8">
+                <div className="mx-auto max-w-2xl px-4">
                     <div className="mb-6 flex items-center justify-between">
                         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                             Notifications
                         </h1>
                         {unreadCount > 0 && (
                             <span className="rounded-full bg-red-500 px-3 py-1 text-xs font-semibold text-white">
-                                {unreadCount} unread
+                                {unreadCount}
+                                {' '}
+                                unread
                             </span>
                         )}
                     </div>
@@ -123,7 +139,7 @@ export default function Notifications() {
                                 <div
                                     key={notification.id}
                                     onClick={() => handleNotificationClick(notification)}
-                                    className={`group flex items-start gap-3 rounded-lg p-4 transition-all cursor-pointer ${
+                                    className={`group flex cursor-pointer items-start gap-3 rounded-lg p-4 transition-all ${
                                         !notification.read_at
                                             ? 'bg-white shadow-sm dark:bg-gray-800'
                                             : 'bg-gray-50 dark:bg-gray-900'
@@ -133,11 +149,13 @@ export default function Notifications() {
                                         {getNotificationIcon(notification.data.type)}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className={`text-sm ${
-                                            !notification.read_at
-                                                ? 'font-semibold text-gray-900 dark:text-white'
-                                                : 'text-gray-600 dark:text-gray-400'
-                                        }`}>
+                                        <p
+                                            className={`text-sm ${
+                                                !notification.read_at
+                                                    ? 'font-semibold text-gray-900 dark:text-white'
+                                                    : 'text-gray-600 dark:text-gray-400'
+                                            }`}
+                                        >
                                             {notification.data.message}
                                         </p>
                                         <p className="mt-1 text-xs text-gray-500 dark:text-gray-500">
@@ -154,7 +172,7 @@ export default function Notifications() {
                         </div>
                     )}
                 </div>
-            </AppLayout>
+            </div>
         </>
     );
 }
