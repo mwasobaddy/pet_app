@@ -1,16 +1,39 @@
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { Heart, MessageCircle, PawPrint, User } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { Notification } from '@/types';
 
 export default function Notifications() {
+    const { auth } = usePage().props;
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [loading, setLoading] = useState(true);
     const [unreadCount, setUnreadCount] = useState(0);
 
     useEffect(() => {
         fetchNotifications();
-    }, []);
+
+        // Subscribe to real-time broadcast notifications
+        if (window.Echo && auth?.user?.id) {
+            window.Echo.private(`users.${auth.user.id}`)
+                .notification((notification: any) => {
+                    const newNotification: Notification = {
+                        id: notification.id || crypto.randomUUID(),
+                        type: notification.type,
+                        read_at: null,
+                        created_at: new Date().toISOString(),
+                        data: notification,
+                    };
+                    setNotifications((prev) => [newNotification, ...prev]);
+                    setUnreadCount((prev) => prev + 1);
+                });
+        }
+
+        return () => {
+            if (window.Echo && auth?.user?.id) {
+                window.Echo.leave(`users.${auth.user.id}`);
+            }
+        };
+    }, [auth?.user?.id]);
 
     const fetchNotifications = async () => {
         try {

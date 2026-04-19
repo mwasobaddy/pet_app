@@ -1,6 +1,7 @@
+import { router, usePage } from '@inertiajs/react';
 import { Bell } from 'lucide-react';
+import { Heart, MessageCircle, PawPrint } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -8,19 +9,44 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import type { Notification } from '@/types';
-import { Heart, MessageCircle, Pet } from 'lucide-react';
 
 export function NotificationBell() {
+    const { auth } = usePage().props;
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [isOpen, setIsOpen] = useState(false);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/immutability
         fetchNotifications();
-        // Poll for new notifications every 30 seconds
-        const interval = setInterval(fetchNotifications, 30000);
-        return () => clearInterval(interval);
-    }, []);
+
+        // Subscribe to real-time broadcast notifications
+        if (window.Echo && auth?.user?.id) {
+            window.Echo.private(`users.${auth.user.id}`)
+                .notification((notification: any) => {
+                    const newNotification: Notification = {
+                        id: notification.id || crypto.randomUUID(),
+                        type: notification.type,
+                        read_at: null,
+                        created_at: new Date().toISOString(),
+                        data: notification,
+                    };
+                    setNotifications((prev) => [newNotification, ...prev]);
+                    setUnreadCount((prev) => prev + 1);
+                });
+        }
+
+        // Keep polling as fallback
+        const interval = setInterval(fetchNotifications, 60000);
+
+        return () => {
+            clearInterval(interval);
+
+            if (window.Echo && auth?.user?.id) {
+                window.Echo.leave(`users.${auth.user.id}`);
+            }
+        };
+    }, [auth?.user?.id]);
 
     const fetchNotifications = async () => {
         try {
@@ -58,6 +84,7 @@ export function NotificationBell() {
         if (!notification.read_at) {
             markAsRead(notification.id);
         }
+
         router.visit('/notifications');
     };
 
@@ -70,7 +97,7 @@ export function NotificationBell() {
             case 'message_wall_comment_reply':
                 return <MessageCircle className="h-4 w-4 fill-green-500 text-green-500" />;
             case 'match':
-                return <Pet className="h-4 w-4 fill-purple-500 text-purple-500" />;
+                return <PawPrint className="h-4 w-4 fill-purple-500 text-purple-500" />;
             default:
                 return <Bell className="h-4 w-4" />;
         }
@@ -81,9 +108,18 @@ export function NotificationBell() {
         const now = new Date();
         const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
-        if (seconds < 60) return 'Just now';
-        if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
-        if (seconds < 86400) return `${Math.floor(seconds / 3600)}h`;
+        if (seconds < 60) {
+            return 'Just now';
+        }
+
+        if (seconds < 3600) {
+            return `${Math.floor(seconds / 60)}m`;
+        }
+
+        if (seconds < 86400) {
+            return `${Math.floor(seconds / 3600)}h`;
+        }
+
         return `${Math.floor(seconds / 86400)}d`;
     };
 
