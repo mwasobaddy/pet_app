@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class RolePermissionSeeder extends Seeder
 {
@@ -15,10 +16,10 @@ class RolePermissionSeeder extends Seeder
     public function run(): void
     {
         // Reset cached permissions
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
         // Create permissions
-        $accessDashboard = Permission::findOrCreate('access_dashboard');
+        $accessDiscover = Permission::findOrCreate('access_discover');
         $manageUser = Permission::findOrCreate('manage_user');
 
         // Create roles and assign permissions
@@ -27,11 +28,11 @@ class RolePermissionSeeder extends Seeder
         $svipRole = Role::findOrCreate('svip_user');
         $adminRole = Role::findOrCreate('admin');
 
-        $freeRole->givePermissionTo($accessDashboard);
-        $vipRole->givePermissionTo($accessDashboard);
-        $svipRole->givePermissionTo($accessDashboard);
+        $freeRole->givePermissionTo($accessDiscover);
+        $vipRole->givePermissionTo($accessDiscover);
+        $svipRole->givePermissionTo($accessDiscover);
 
-        $adminRole->givePermissionTo([$accessDashboard, $manageUser]);
+        $adminRole->givePermissionTo([$accessDiscover, $manageUser]);
 
         $legacyRole = Role::query()->where('name', 'user')->first();
         if ($legacyRole !== null) {
