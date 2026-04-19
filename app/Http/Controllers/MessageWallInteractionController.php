@@ -13,6 +13,8 @@ use App\Models\MessageWallShare;
 use App\Models\User;
 use App\Models\UserFollow;
 use App\Notifications\MessageWallCommentReplyNotification;
+use App\Notifications\PostCommentedNotification;
+use App\Notifications\PostLikedNotification;
 use Illuminate\Http\JsonResponse;
 
 class MessageWallInteractionController extends Controller
@@ -36,6 +38,15 @@ class MessageWallInteractionController extends Controller
             ]);
             $messageWallPost->increment('likes_count');
             $liked = true;
+
+            // Notify post author (if not liking their own post)
+            if ($messageWallPost->user_id !== $user->id) {
+                $messageWallPost->user->notify(new PostLikedNotification(
+                    postId: $messageWallPost->id,
+                    likerName: $user->name,
+                    petName: $messageWallPost->petProfile?->name,
+                ));
+            }
         }
 
         $updatedPost = $messageWallPost->fresh();
@@ -68,6 +79,17 @@ class MessageWallInteractionController extends Controller
 
         $messageWallPost->increment('comments_count');
         $updatedPost = $messageWallPost->fresh();
+
+        // Notify post author (if not commenting on their own post)
+        if ($messageWallPost->user_id !== $request->user()->id) {
+            $messageWallPost->user->notify(new PostCommentedNotification(
+                postId: $messageWallPost->id,
+                commentId: $comment->id,
+                commenterName: $request->user()->name,
+                commentBody: $validated['body'],
+                petName: $messageWallPost->petProfile?->name,
+            ));
+        }
 
         $commentPayload = [
             'id' => $comment->id,
