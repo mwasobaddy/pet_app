@@ -96,10 +96,11 @@ export default function Dashboard() {
     const [matchModal, setMatchModal] = useState({ isOpen: false, pet: null as MatchedPet | null, matchId: null as number | null });
     const [distance, setDistance] = useState(100);
     const [analyticsSummary, setAnalyticsSummary] = useState<AnalyticsSummary | null>(null);
-    const [analyticsLoading, setAnalyticsLoading] = useState(true);
     const [notifications, setNotifications] = useState<NotificationItem[]>([]);
     const [notificationsLoading, setNotificationsLoading] = useState(true);
     const [unreadCount, setUnreadCount] = useState(0);
+    const [petTypes, setPetTypes] = useState<PetType[]>([]);
+    const [personalityTags, setPersonalityTags] = useState<{ id: number; name: string }[]>([]);
     const [filters, setFilters] = useState({
         petTypeId: '',
         personalityTagIds: [] as number[],
@@ -152,16 +153,12 @@ export default function Dashboard() {
     }, [auth?.user?.id]);
 
     const loadAnalytics = async () => {
-        setAnalyticsLoading(true);
-
         try {
             const response = await fetch(analyticsRoutes.summary.url());
             const data = await response.json();
             setAnalyticsSummary(data);
         } catch (error) {
             console.error('Failed to load analytics summary:', error);
-        } finally {
-            setAnalyticsLoading(false);
         }
     };
 
@@ -195,6 +192,8 @@ export default function Dashboard() {
             );
             const data = await response.json();
             setRecommendations(data.recommendations);
+            setPetTypes(data.filters?.pet_types ?? []);
+            setPersonalityTags(data.filters?.personality_tags ?? []);
             setCurrentIndex(0);
         } catch (error) {
             console.error('Failed to load recommendations:', error);
@@ -323,7 +322,7 @@ export default function Dashboard() {
                 {/* Main Content */}
                 <div className="relative z-10 flex flex-col lg:flex-row min-h-screen">
                     {/* Left Sidebar - User Profile & Stats */}
-                    <div className="lg:w-80 lg:fixed lg:h-screen lg:overflow-y-auto p-4 lg:p-6 space-y-4">
+                    <div className="lg:w-80 lg:h-screen lg:overflow-y-auto p-4 lg:p-6 space-y-4">
                         {/* User Card */}
                         <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/50 dark:border-gray-700/50 p-6">
                             <div className="flex items-center gap-4">
@@ -443,7 +442,7 @@ export default function Dashboard() {
                     </div>
 
                     {/* Center - Main Swipe Area */}
-                    <div className="flex-1 lg:ml-80 p-4 lg:p-6">
+                    <div className="flex-1 p-4 lg:p-6">
                         {/* CTA Banner */}
                         <div className="mb-6 relative overflow-hidden rounded-3xl bg-gradient-to-br from-orange-500 via-pink-500 to-rose-500 p-6 shadow-2xl">
                             <div className="absolute inset-0 opacity-20">
@@ -501,7 +500,7 @@ export default function Dashboard() {
                         {/* Filters Panel */}
                         {showFilters && (
                             <div className="mb-6 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/50 dark:border-gray-700/50 p-6 animate-in slide-in-from-top-2">
-                                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                                     <div>
                                         <label className="text-xs font-semibold uppercase text-gray-600 dark:text-gray-400 mb-2 block">Pet Type</label>
                                         <select
@@ -510,27 +509,14 @@ export default function Dashboard() {
                                             className="w-full rounded-xl border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white px-4 py-2.5 text-sm focus:border-orange-400 focus:ring-orange-400/20 transition"
                                         >
                                             <option value="">Any Type</option>
-                                            {filterOptions.pet_types.map((type: { id: Key | readonly string[] | null | undefined; icon: any; name: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; }) => (
+                                            {petTypes.map((type) => (
                                                 <option key={type.id} value={type.id}>
                                                     {type.icon ?? ''} {type.name}
                                                 </option>
                                             ))}
                                         </select>
                                     </div>
-                                    <div>
-                                        <label className="text-xs font-semibold uppercase text-gray-600 dark:text-gray-400 mb-2 block">Gender</label>
-                                        <select
-                                            value={filters.gender}
-                                            onChange={(event) => setFilters((prev) => ({ ...prev, gender: event.target.value }))}
-                                            disabled={!filterOptions.advanced_allowed}
-                                            className="w-full rounded-xl border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white px-4 py-2.5 text-sm focus:border-orange-400 focus:ring-orange-400/20 transition disabled:opacity-50"
-                                        >
-                                            <option value="">Any</option>
-                                            <option value="Male">Male</option>
-                                            <option value="Female">Female</option>
-                                        </select>
-                                    </div>
-                                    <div className="sm:col-span-2 lg:col-span-2">
+                                    <div className="sm:col-span-2">
                                         <label className="text-xs font-semibold uppercase text-gray-600 dark:text-gray-400 mb-2 block">Distance: {distance}km</label>
                                         <input
                                             type="range"
@@ -546,47 +532,41 @@ export default function Dashboard() {
                                     </div>
                                 </div>
 
-                                {filterOptions.advanced_allowed && (
-                                    <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                                        <label className="text-xs font-semibold uppercase text-gray-600 dark:text-gray-400 mb-3 block">Personality Traits</label>
-                                        <div className="flex flex-wrap gap-2">
-                                            {filterOptions.personality_tags.map((tag) => {
-                                                const isSelected = filters.personalityTagIds.includes(tag.id);
+                                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                                    <label className="text-xs font-semibold uppercase text-gray-600 dark:text-gray-400 mb-3 block">Personality Traits</label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {personalityTags.map((tag) => {
+                                            const isSelected = filters.personalityTagIds.includes(tag.id);
 
-                                                return (
-                                                    <button
-                                                        key={tag.id}
-                                                        onClick={() =>
-                                                            setFilters((prev) => ({
-                                                                ...prev,
-                                                                personalityTagIds: isSelected
-                                                                    ? prev.personalityTagIds.filter((id) => id !== tag.id)
-                                                                    : [...prev.personalityTagIds, tag.id],
-                                                            }))
-                                                        }
-                                                        className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all duration-200 ${
-                                                            isSelected
-                                                                ? 'bg-gradient-to-r from-orange-500 to-rose-500 text-white shadow-md'
-                                                                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-                                                        }`}
-                                                    >
-                                                        {tag.name}
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
+                                            return (
+                                                <button
+                                                    key={tag.id}
+                                                    onClick={() =>
+                                                        setFilters((prev) => ({
+                                                            ...prev,
+                                                            personalityTagIds: isSelected
+                                                                ? prev.personalityTagIds.filter((id) => id !== tag.id)
+                                                                : [...prev.personalityTagIds, tag.id],
+                                                        }))
+                                                    }
+                                                    className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all duration-200 ${
+                                                        isSelected
+                                                            ? 'bg-gradient-to-r from-orange-500 to-rose-500 text-white shadow-md'
+                                                            : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                                                    }`}
+                                                >
+                                                    {tag.name}
+                                                </button>
+                                            );
+                                        })}
                                     </div>
-                                )}
+                                </div>
 
                                 <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-end">
                                     <button
                                         onClick={() => {
                                             setFilters({
                                                 petTypeId: '',
-                                                ageMin: '',
-                                                ageMax: '',
-                                                gender: '',
-                                                breed: '',
                                                 personalityTagIds: [],
                                             });
                                             loadRecommendations();
