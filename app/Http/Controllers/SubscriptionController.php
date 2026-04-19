@@ -120,7 +120,7 @@ class SubscriptionController extends Controller
             return redirect()->route('pets.create');
         }
 
-        return redirect()->route('dashboard');
+        return redirect()->route('discover');
     }
 
     private function requiresProfileCompletion(User $user): bool

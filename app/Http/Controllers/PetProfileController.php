@@ -50,7 +50,7 @@ class PetProfileController extends Controller
         }
 
         return redirect()
-            ->route('dashboard')
+            ->route('discover')
             ->with('success', 'Pet profile created successfully!');
     }
 

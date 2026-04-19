@@ -30,6 +30,6 @@ class ProfileCompletionController extends Controller
             'message' => __('Profile completed.'),
         ]);
 
-        return redirect()->route('dashboard');
+        return redirect()->route('discover');
     }
 }

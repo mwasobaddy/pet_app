@@ -38,7 +38,7 @@ class GoogleAuthController extends Controller
                 return redirect()->route('profile.incomplete');
             }
 
-            return redirect()->intended('/dashboard');
+            return redirect()->intended('/discover');
         } catch (\Exception $e) {
             Log::error('Google authentication failed', [
                 'error' => $e->getMessage(),
