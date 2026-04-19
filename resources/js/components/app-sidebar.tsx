@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { BookOpen, FolderGit2, Heart, LayoutGrid, MessageCircle, PawPrint, Settings } from 'lucide-react';
+import { Bell, BookOpen, FolderGit2, Heart, LayoutGrid, MessageCircle, PawPrint, Settings } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -13,7 +13,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { discover, feed } from '@/routes';
+import { discover, feed, notifications } from '@/routes';
 import * as petsRoutes from '@/routes/pets';
 import * as profileRoutes from '@/routes/profile';
 import type { NavItem } from '@/types';
@@ -33,6 +33,11 @@ const mainNavItems: NavItem[] = [
         title: 'Chat',
         href: '/chat',
         icon: MessageCircle,
+    },
+    {
+        title: 'Notifications',
+        href: notifications().url,
+        icon: Bell,
     },
     {
         title: 'My Pets',

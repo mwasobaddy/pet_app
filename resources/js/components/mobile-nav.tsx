@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Zap, Archive, MessageCircle, Heart, User } from 'lucide-react';
+import { Zap, Archive, MessageCircle, Bell, User } from 'lucide-react';
 
 const navItems = [
     {
@@ -21,10 +21,10 @@ const navItems = [
         activeRoutes: ['/chat'],
     },
     {
-        name: 'Likes',
-        href: '/likes',
-        icon: Heart,
-        activeRoutes: ['/likes'],
+        name: 'Notifications',
+        href: '/notifications',
+        icon: Bell,
+        activeRoutes: ['/notifications'],
     },
     {
         name: 'Profile',
