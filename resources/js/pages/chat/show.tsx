@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
 import { Head, usePage } from '@inertiajs/react';
 import { Paperclip, Send } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Auth } from '@/types/auth';
 
 interface ConversationDetails {
@@ -45,12 +45,23 @@ export default function ChatShow({ conversation, messages }: { conversation: Con
         listRef.current?.scrollTo({ top: listRef.current.scrollHeight });
     }, [sortedItems.length]);
 
-    useEffect(() => {
-        markRead();
-    }, []);
+    const markRead = useCallback(async () => {
+        await fetch(`/chat/${conversation.id}/read`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+            },
+        });
+    }, [conversation.id]);
 
     useEffect(() => {
-        if (!window.Echo) return;
+        markRead();
+    }, [markRead]);
+
+    useEffect(() => {
+        if (!window.Echo) {
+            return;
+        }
 
         const channel = window.Echo.private(`chat.${conversation.id}`);
 
@@ -88,24 +99,18 @@ export default function ChatShow({ conversation, messages }: { conversation: Con
             channel.stopListening('.message.read');
             window.Echo?.leave(`chat.${conversation.id}`);
         };
-    }, [conversation.id, currentUserId]);
-
-    const markRead = async () => {
-        await fetch(`/chat/${conversation.id}/read`, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-            },
-        });
-    };
+    }, [conversation.id, currentUserId, markRead]);
 
     const handleSend = async () => {
-        if (!messageBody.trim() && !media) return;
+        if (!messageBody.trim() && !media) {
+            return;
+        }
 
         setIsSending(true);
 
         const formData = new FormData();
         formData.append('body', messageBody);
+
         if (media) {
             formData.append('media', media);
         }
@@ -129,7 +134,9 @@ export default function ChatShow({ conversation, messages }: { conversation: Con
     };
 
     const handleTyping = () => {
-        if (!window.Echo) return;
+        if (!window.Echo) {
+            return;
+        }
 
         const channel = window.Echo.private(`chat.${conversation.id}`);
         channel.whisper('typing', { user_id: currentUserId });
@@ -139,9 +146,9 @@ export default function ChatShow({ conversation, messages }: { conversation: Con
         <>
             <Head title={conversation.other_user?.name ? `Chat • ${conversation.other_user.name}` : 'Chat'} />
 
-            <div className="min-h-screen w-full bg-gradient-to-b from-orange-50/50 via-white to-pink-50/30 dark:from-gray-950 dark:via-gray-950 dark:to-gray-900">
-                <div className="max-w-4xl mx-auto h-[calc(100vh-4rem)] p-4 md:p-6">
-                    <div className="flex h-full flex-col rounded-2xl border-2 border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-xl">
+            <div className="h-svh w-full overflow-hidden bg-gradient-to-b from-orange-50/50 via-white to-pink-50/30 md:min-h-screen md:overflow-visible dark:from-gray-950 dark:via-gray-950 dark:to-gray-900">
+                <div className="fixed inset-x-0 top-16 bottom-[72px] mx-auto w-full max-w-4xl md:static md:h-[calc(100vh-4rem)] md:p-6">
+                    <div className="flex h-full min-h-0 flex-col rounded-2xl border-2 border-gray-200 bg-white/80 shadow-xl backdrop-blur-sm dark:border-gray-700 dark:bg-gray-800/80">
                         {/* Header */}
                         <div className="flex items-center gap-4 border-b border-gray-200 dark:border-gray-700 p-4 bg-gradient-to-r from-orange-50/50 to-pink-50/50 dark:from-gray-800 dark:to-gray-800 rounded-t-2xl">
                             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-rose-500 flex items-center justify-center shadow-md">
@@ -158,7 +165,7 @@ export default function ChatShow({ conversation, messages }: { conversation: Con
                         </div>
 
                         {/* Messages */}
-                        <div ref={listRef} className="flex-1 space-y-4 overflow-y-auto p-4 bg-gradient-to-b from-transparent to-orange-50/30 dark:to-gray-900/30">
+                        <div ref={listRef} className="flex-1 min-h-0 space-y-4 overflow-y-auto p-4 bg-gradient-to-b from-transparent to-orange-50/30 dark:to-gray-900/30">
                             {sortedItems.map((message) => {
                                 const isMine = message.sender_id === currentUserId;
                                 const showRead = isMine && message.read_at;

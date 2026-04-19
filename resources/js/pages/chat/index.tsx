@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
-import Heading from '@/components/heading';
+import { useEffect, useState } from 'react';
 import type { Auth } from '@/types/auth';
 
 interface ConversationSummary {
@@ -26,7 +25,9 @@ export default function ChatIndex({ conversations: initialConversations }: { con
     const [conversations, setConversations] = useState<ConversationSummary[]>(initialConversations);
 
     useEffect(() => {
-        if (!window.Echo) return;
+        if (!window.Echo) {
+            return;
+        }
 
         // Subscribe to all conversation channels
         initialConversations.forEach((conversation) => {
