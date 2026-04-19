@@ -1,5 +1,5 @@
 import { Head, usePage } from '@inertiajs/react';
-import { Filter, Heart, MapPin, Search } from 'lucide-react';
+import { ArrowLeft, Filter, Heart, MapPin, Search, X } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import MatchModal from '@/components/match-modal';
 import SwipeCard from '@/components/swipe-card';
@@ -71,13 +71,20 @@ export default function Discover() {
         petTypeId: '',
         personalityTagIds: [] as number[],
     });
-    const [showFilters, setShowFilters] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [desktopPets, setDesktopPets] = useState<Recommendation[]>([]);
     const [exitingPetId, setExitingPetId] = useState<number | null>(null);
     const [enteringPetId, setEnteringPetId] = useState<number | null>(null);
+    const [mobileSearchExpanded, setMobileSearchExpanded] = useState(false);
+    const [showMobileFiltersModal, setShowMobileFiltersModal] = useState(false);
+    const [hasHistory, setHasHistory] = useState(false);
     const recommendationsRef = useRef<Recommendation[]>([]);
     const desktopCursorRef = useRef(0);
+
+    // Check if there's browser history for back button
+    useEffect(() => {
+        setHasHistory(typeof window !== 'undefined' && window.history.length > 1);
+    }, []);
 
     // Load recommendations on mount
     useEffect(() => {
@@ -271,7 +278,7 @@ export default function Discover() {
     return (
         <>
             <Head title="Discover" />
-            <div className="min-h-screen bg-gradient-to-br from-orange-50/50 via-white to-pink-50/30 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
+            <div className="h-svh md:min-h-screen overflow-hidden md:overflow-visible bg-gradient-to-br from-orange-50/50 via-white to-pink-50/30 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
                 {/* Pattern Background */}
                 <div className="fixed inset-0 opacity-5 pointer-events-none">
                     <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
@@ -286,10 +293,10 @@ export default function Discover() {
 
                 {/* Main Content */}
                 <div className="relative h-full w-full">
-                    <div className="mx-auto flex h-full w-full max-w-6xl flex-col px-4 pb-16 pt-6 lg:px-6">
+                    <div className="mx-auto flex h-full w-full max-w-6xl flex-col pb-0 md:pb-16 lg:px-6 min-h-0">
 
-                        {/* Filters Bar */}
-                        <div className="mb-6 flex flex-wrap items-center gap-3">
+                        {/* Filters Bar - Desktop Layout */}
+                        <div className="hidden md:flex sticky top-0 z-20 mb-6 p-4 flex-wrap items-center gap-3 bg-white/80 backdrop-blur dark:bg-gray-900/80 md:relative md:bg-transparent md:backdrop-blur-0">
                             <div className="flex min-w-[220px] flex-1 items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 shadow-sm transition focus-within:border-orange-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
                                 <Search className="h-4 w-4 text-orange-500" />
                                 <input
@@ -300,12 +307,8 @@ export default function Discover() {
                                 />
                             </div>
                             <button
-                                onClick={() => setShowFilters(!showFilters)}
-                                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 ${
-                                    showFilters
-                                        ? 'bg-gradient-to-r from-orange-500 to-rose-500 text-white shadow-lg'
-                                        : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-orange-300 dark:hover:border-orange-500'
-                                }`}
+                                onClick={() => setShowMobileFiltersModal(true)}
+                                className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-orange-300 dark:hover:border-orange-500"
                             >
                                 <Filter className="h-4 w-4" />
                                 Filters
@@ -323,84 +326,170 @@ export default function Discover() {
                             </button>
                         </div>
 
-                        {/* Filters Panel */}
-                        {showFilters && (
-                            <div className="mb-6 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/50 dark:border-gray-700/50 p-6 animate-in slide-in-from-top-2">
-                                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                                    <div>
-                                        <label className="text-xs font-semibold uppercase text-gray-600 dark:text-gray-400 mb-2 block">Pet Type</label>
-                                        <select
-                                            value={filters.petTypeId}
-                                            onChange={(event) => setFilters((prev) => ({ ...prev, petTypeId: event.target.value }))}
-                                            className="w-full rounded-xl border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white px-4 py-2.5 text-sm focus:border-orange-400 focus:ring-orange-400/20 transition"
-                                        >
-                                            <option value="">Any Type</option>
-                                            {petTypes.map((type) => (
-                                                <option key={type.id} value={type.id}>
-                                                    {type.icon ?? ''} {type.name}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div className="sm:col-span-2">
-                                        <label className="text-xs font-semibold uppercase text-gray-600 dark:text-gray-400 mb-2 block">Distance: {distance}km</label>
+                        {/* Filters Bar - Mobile Layout */}
+                        <div className="fixed top-0 left-0 right-0 z-30 md:hidden">
+                            {/* Mobile Header: Back + Search Icon */}
+                            {!mobileSearchExpanded && (
+                                <div className="h-16 px-4 flex items-center justify-between bg-white/80 backdrop-blur dark:bg-gray-900/80 border-b border-gray-200 dark:border-gray-700">
+                                    <button
+                                        onClick={() => hasHistory && window.history.back()}
+                                        className={`p-2 rounded-lg transition ${
+                                            hasHistory
+                                                ? 'hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer'
+                                                : 'opacity-0 pointer-events-none'
+                                        }`}
+                                        disabled={!hasHistory}
+                                    >
+                                        <ArrowLeft className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+                                    </button>
+                                    <button
+                                        onClick={() => setMobileSearchExpanded(true)}
+                                        className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                                    >
+                                        <Search className="h-5 w-5 text-orange-500" />
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* Mobile Search Bar - Expanded */}
+                            {mobileSearchExpanded && (
+                                <div className="h-16 px-4 flex items-center gap-3 bg-white/80 backdrop-blur dark:bg-gray-900/80 border-b border-gray-200 dark:border-gray-700">
+                                    <button
+                                        onClick={() => setMobileSearchExpanded(false)}
+                                        className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition flex-shrink-0"
+                                    >
+                                        <X className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+                                    </button>
+                                    <div className="flex flex-1 items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 shadow-sm focus-within:border-orange-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
+                                        <Search className="h-4 w-4 text-orange-500 flex-shrink-0" />
                                         <input
-                                            type="range"
-                                            min="1"
-                                            max="500"
-                                            value={distance}
-                                            onChange={(e) => {
-                                                setDistance(Number(e.target.value));
-                                                setRecommendations([]);
-                                            }}
-                                            className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-orange-500"
+                                            autoFocus
+                                            value={searchQuery}
+                                            onChange={(event) => setSearchQuery(event.target.value)}
+                                            placeholder="Search by name, breed..."
+                                            className="w-full bg-transparent text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none dark:text-gray-200"
                                         />
                                     </div>
-                                </div>
-
-                                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                                    <label className="text-xs font-semibold uppercase text-gray-600 dark:text-gray-400 mb-3 block">Personality Traits</label>
-                                    <div className="flex flex-wrap gap-2">
-                                        {personalityTags.map((tag) => {
-                                            const isSelected = filters.personalityTagIds.includes(tag.id);
-
-                                            return (
-                                                <button
-                                                    key={tag.id}
-                                                    onClick={() =>
-                                                        setFilters((prev) => ({
-                                                            ...prev,
-                                                            personalityTagIds: isSelected
-                                                                ? prev.personalityTagIds.filter((id) => id !== tag.id)
-                                                                : [...prev.personalityTagIds, tag.id],
-                                                        }))
-                                                    }
-                                                    className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all duration-200 ${
-                                                        isSelected
-                                                            ? 'bg-gradient-to-r from-orange-500 to-rose-500 text-white shadow-md'
-                                                            : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-                                                    }`}
-                                                >
-                                                    {tag.name}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-
-                                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-end">
                                     <button
-                                        onClick={() => {
-                                            setFilters({
-                                                petTypeId: '',
-                                                personalityTagIds: [],
-                                            });
-                                            loadRecommendations();
-                                        }}
-                                        className="px-4 py-2 rounded-xl text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 transition"
+                                        onClick={() => setShowMobileFiltersModal(true)}
+                                        className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition flex-shrink-0"
                                     >
-                                        Reset all filters
+                                        <Filter className="h-5 w-5 text-gray-700 dark:text-gray-300" />
                                     </button>
+                                </div>
+                            )}
+                        </div>
+
+
+
+                        {/* Filters Modal */}
+                        {showMobileFiltersModal && (
+                            <div className="fixed inset-0 z-50 flex items-end">
+                                {/* Backdrop */}
+                                <div
+                                    className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                                    onClick={() => setShowMobileFiltersModal(false)}
+                                />
+
+                                {/* Modal */}
+                                <div className="relative w-full max-h-[90vh] overflow-y-auto rounded-t-3xl bg-white dark:bg-gray-900 shadow-2xl animate-in slide-in-from-bottom-5">
+                                    <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 rounded-t-3xl">
+                                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Filters</h3>
+                                        <button
+                                            onClick={() => setShowMobileFiltersModal(false)}
+                                            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                                        >
+                                            <X className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+                                        </button>
+                                    </div>
+
+                                    <div className="p-6 space-y-6">
+                                        {/* Pet Type Filter */}
+                                        <div>
+                                            <label className="text-xs font-semibold uppercase text-gray-600 dark:text-gray-400 mb-3 block">Pet Type</label>
+                                            <select
+                                                value={filters.petTypeId}
+                                                onChange={(event) => setFilters((prev) => ({ ...prev, petTypeId: event.target.value }))}
+                                                className="w-full rounded-xl border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white px-4 py-2.5 text-sm focus:border-orange-400 focus:ring-orange-400/20 transition"
+                                            >
+                                                <option value="">Any Type</option>
+                                                {petTypes.map((type) => (
+                                                    <option key={type.id} value={type.id}>
+                                                        {type.icon ?? ''} {type.name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        {/* Distance Filter */}
+                                        <div>
+                                            <label className="text-xs font-semibold uppercase text-gray-600 dark:text-gray-400 mb-3 block">Distance: {distance}km</label>
+                                            <input
+                                                type="range"
+                                                min="1"
+                                                max="500"
+                                                value={distance}
+                                                onChange={(e) => {
+                                                    setDistance(Number(e.target.value));
+                                                    setRecommendations([]);
+                                                }}
+                                                className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-orange-500"
+                                            />
+                                        </div>
+
+                                        {/* Personality Traits */}
+                                        <div>
+                                            <label className="text-xs font-semibold uppercase text-gray-600 dark:text-gray-400 mb-3 block">Personality Traits</label>
+                                            <div className="flex flex-wrap gap-2">
+                                                {personalityTags.map((tag) => {
+                                                    const isSelected = filters.personalityTagIds.includes(tag.id);
+
+                                                    return (
+                                                        <button
+                                                            key={tag.id}
+                                                            onClick={() =>
+                                                                setFilters((prev) => ({
+                                                                    ...prev,
+                                                                    personalityTagIds: isSelected
+                                                                        ? prev.personalityTagIds.filter((id) => id !== tag.id)
+                                                                        : [...prev.personalityTagIds, tag.id],
+                                                                }))
+                                                            }
+                                                            className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all duration-200 ${
+                                                                isSelected
+                                                                    ? 'bg-gradient-to-r from-orange-500 to-rose-500 text-white shadow-md'
+                                                                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                                                            }`}
+                                                        >
+                                                            {tag.name}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Modal Footer */}
+                                    <div className="sticky bottom-0 flex items-center gap-3 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
+                                        <button
+                                            onClick={() => {
+                                                setFilters({
+                                                    petTypeId: '',
+                                                    personalityTagIds: [],
+                                                });
+                                                loadRecommendations();
+                                            }}
+                                            className="flex-1 px-4 py-2 rounded-xl text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 transition border border-gray-200 dark:border-gray-700"
+                                        >
+                                            Reset
+                                        </button>
+                                        <button
+                                            onClick={() => setShowMobileFiltersModal(false)}
+                                            className="flex-1 px-4 py-2 rounded-xl text-sm font-semibold bg-gradient-to-r from-orange-500 to-rose-500 text-white shadow-md hover:shadow-lg transition"
+                                        >
+                                            Done
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -497,8 +586,8 @@ export default function Discover() {
                         </div>
 
                         {/* Mobile Swipe Area */}
-                        <div className="lg:hidden flex-1">
-                            <div className="relative h-full min-h-[500px] flex flex-col items-center justify-center">
+                        <div className="lg:hidden fixed left-0 right-0 top-16 bottom-[72px] mx-auto w-full max-w-6xl overflow-hidden">
+                            <div className="relative h-full w-full min-h-0 flex flex-col items-center justify-center overflow-hidden">
                                 {hasRecommendations && currentPet ? (
                                     <div className="w-full h-full md:max-w-md">
                                         <SwipeCard
