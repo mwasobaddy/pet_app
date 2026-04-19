@@ -115,7 +115,7 @@ export default function Feed() {
                     </svg>
                 </div>
 
-                <div className="relative z-10">
+                <div className="relative">
                     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 pb-16 pt-6 lg:px-6">
                         <div className="flex flex-col gap-4 rounded-3xl bg-gradient-to-br from-orange-500 via-pink-500 to-rose-500 p-6 shadow-2xl">
                             <div className="flex items-center gap-2 text-white/90">
