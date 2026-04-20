@@ -30,7 +30,7 @@ class ChatController extends Controller
             ->map(fn (Conversation $conversation) => $this->chatQueryService->formatConversation($conversation, $user))
             ->values();
 
-        if (($request->wantsJson() || $request->ajax()) && ! $request->header('X-Inertia')) {
+        if ($request->ajax() && ! $request->header('X-Inertia')) {
             return response()->json([
                 'conversations' => $conversations,
                 'meta' => [
@@ -70,7 +70,7 @@ class ChatController extends Controller
             ->map(fn ($message) => $this->chatQueryService->formatMessage($message))
             ->values();
 
-        if (($request->wantsJson() || $request->ajax()) && ! $request->header('X-Inertia')) {
+        if ($request->ajax() && ! $request->header('X-Inertia')) {
             return response()->json([
                 'messages' => $messages,
                 'meta' => [

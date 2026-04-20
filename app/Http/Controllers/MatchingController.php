@@ -31,6 +31,8 @@ class MatchingController extends Controller
         $gender = $request->query('gender');
         $breed = $request->query('breed');
         $personalityTags = $request->query('personality_tags');
+        $distanceMin = $request->query('distance_min');
+        $distanceMax = $request->query('distance') ?? $request->query('distance_max');
 
         // Convert personality tags to array if needed
         $tagIds = null;
@@ -50,6 +52,9 @@ class MatchingController extends Controller
             gender: $gender,
             breed: $breed,
             personalityTags: $tagIds,
+            distanceMin: $distanceMin ? (int) $distanceMin : null,
+            distanceMax: $distanceMax ? (int) $distanceMax : null,
+            preferences: $user->matchingPreference,
         );
 
         $filterOptions = $this->matchingService->getFilterOptions();
@@ -58,7 +63,7 @@ class MatchingController extends Controller
 
         return response()->json([
             'recommendations' => $recommendations,
-            'distance' => (int) $request->query('distance', 100),
+            'distance' => $distanceMax ? (int) $distanceMax : ($user->matchingPreference?->distance_max ?? 100),
             'total' => $recommendations->count(),
             'filters' => [
                 'advanced_allowed' => $advancedAllowed,
