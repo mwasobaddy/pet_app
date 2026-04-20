@@ -1,6 +1,7 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { Filter } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import feedComments from '@/routes/feed/comments';
 import messageWallRoutes from '@/routes/message-wall';
 import FeedFilters from './components/FeedFilters';
 import PostCard from './components/PostCard';
@@ -410,6 +411,9 @@ export default function Show() {
                                         onUpdateCommentDraft={(postId, value) => setCommentDrafts((prev) => ({ ...prev, [postId]: value }))}
                                         onUpdateReplyDraft={(commentId, value) => setReplyDrafts((prev) => ({ ...prev, [commentId]: value }))}
                                         onSetActiveReply={setActiveReplyCommentId}
+                                        onCommentIconClick={(postId) => router.visit(feedComments.show.url(postId))}
+                                        hideComments
+                                        hideCommentInput
                                         formatTime={formatTime}
                                     />
                                 ))}

@@ -1,5 +1,6 @@
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
+import { feed } from '@/routes';
 import messageWallRoutes from '@/routes/message-wall';
 import PostComposer from './components/PostComposer';
 
@@ -47,8 +48,7 @@ export default function Create() {
             setNewPostTags('');
             setNewPostMedia(null);
 
-            // Redirect to feed
-            window.location.href = '/feed';
+            router.visit(feed.url());
         } catch (error) {
             console.error('Failed to create post:', error);
         }

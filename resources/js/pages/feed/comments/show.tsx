@@ -247,6 +247,36 @@ export default function Show({ post: initialPost }: ShowProps) {
         });
     };
 
+    const findCommentById = (commentId: number, comments: FeedComment[] = []): FeedComment | null => {
+        for (const comment of comments) {
+            if (comment.id === commentId) {
+                return comment;
+            }
+
+            if (comment.replies?.length) {
+                const nested = findCommentById(commentId, comment.replies);
+
+                if (nested) {
+                    return nested;
+                }
+            }
+        }
+
+        return null;
+    };
+
+    const activeReplyComment = activeReplyCommentId !== null
+        ? findCommentById(activeReplyCommentId, post.comments ?? [])
+        : null;
+
+    const replyInputValue = activeReplyCommentId !== null
+        ? replyDrafts[activeReplyCommentId] ?? ''
+        : commentDrafts[post.id] ?? '';
+
+    const replyPlaceholder = activeReplyComment
+        ? `Replying to ${activeReplyComment.user_name}`
+        : 'Add a comment...';
+
     if (!post) {
         return (
             <>
@@ -262,46 +292,141 @@ export default function Show({ post: initialPost }: ShowProps) {
         );
     }
 
+    const authorName = post.user_name || post.pet_name || 'Pet Owner';
+    const authorInitial = authorName.charAt(0).toUpperCase();
+
     return (
         <>
-            <Head title={`Post by ${post.user_name}`} />
+            <Head title={`Post by ${authorName}`} />
 
-            <div className="min-h-screen bg-gray-50 py-4 dark:bg-black md:py-6">
-                <div className="mx-auto max-w-2xl px-4">
-                    {/* Back Button / Header */}
-                    <div className="mb-6 flex items-center justify-between">
+            <div className="min-h-screen bg-black text-white">
+                <div className="mx-auto max-w-3xl px-4 py-4 sm:px-6 lg:px-8">
+                    <div className="mb-4 flex items-center justify-between">
                         <Link
                             href="/feed"
-                            className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10"
                         >
                             <ArrowLeft className="h-4 w-4" />
-                            Back to Feed
+                            Back
                         </Link>
-                        <h1 className="text-sm font-semibold text-gray-600 dark:text-gray-400">
-                            Post Details
-                        </h1>
+                        <h1 className="text-sm font-semibold text-white">Comments</h1>
+                        <div className="h-8 w-8" />
                     </div>
 
-                    {/* Post Card - Facebook Style */}
-                    <div className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900">
-                        <PostCard
-                            post={post}
-                            commentDrafts={commentDrafts}
-                            replyDrafts={replyDrafts}
-                            activeReplyCommentId={activeReplyCommentId}
-                            onToggleLike={toggleLike}
-                            onSharePost={sharePost}
-                            onToggleSave={toggleSave}
-                            onSubmitComment={submitComment}
-                            onUpdateCommentDraft={(postId, value) => setCommentDrafts((prev) => ({ ...prev, [postId]: value }))}
-                            onUpdateReplyDraft={(commentId, value) => setReplyDrafts((prev) => ({ ...prev, [commentId]: value }))}
-                            onSetActiveReply={setActiveReplyCommentId}
-                            formatTime={formatTime}
-                        />
-                    </div>
+                    <div className="overflow-hidden rounded-3xl border border-white/10 bg-slate-950 shadow-2xl">
+                        <div className="flex items-center gap-3 border-b border-white/10 px-4 py-4">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-lg font-semibold text-white">
+                                {authorInitial}
+                            </div>
+                            <div className="min-w-0">
+                                <p className="truncate text-sm font-semibold text-white">{authorName}</p>
+                                {post.location && (
+                                    <p className="truncate text-xs text-gray-400">{post.location}</p>
+                                )}
+                            </div>
+                        </div>
 
-                    {/* Spacing at bottom for mobile */}
-                    <div className="mt-6" />
+                        {post.media && post.media.type?.startsWith('image') && (
+                            <div className="bg-black">
+                                <img
+                                    src={post.media.url}
+                                    alt={post.content ?? 'Post image'}
+                                    className="block w-full object-contain"
+                                />
+                            </div>
+                        )}
+
+                        {post.media && post.media.type?.startsWith('video') && (
+                            <div className="bg-black">
+                                <video controls className="block w-full object-contain">
+                                    <source src={post.media.url} type={post.media.type ?? undefined} />
+                                </video>
+                            </div>
+                        )}
+
+                        <div className="bg-slate-950 px-4 py-4 sm:px-5">
+                            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                                <div>
+                                    <p className="text-sm font-semibold text-white">
+                                        {post.likes_count.toLocaleString()} likes
+                                    </p>
+                                    <p className="mt-1 text-sm text-gray-400">
+                                        {post.comments_count.toLocaleString()} comments
+                                    </p>
+                                </div>
+                            </div>
+
+                            <PostCard
+                                post={post}
+                                commentDrafts={commentDrafts}
+                                replyDrafts={replyDrafts}
+                                activeReplyCommentId={activeReplyCommentId}
+                                onToggleLike={toggleLike}
+                                onSharePost={sharePost}
+                                onToggleSave={toggleSave}
+                                onSubmitComment={submitComment}
+                                onUpdateCommentDraft={(postId, value) => setCommentDrafts((prev) => ({ ...prev, [postId]: value }))}
+                                onUpdateReplyDraft={(commentId, value) => setReplyDrafts((prev) => ({ ...prev, [commentId]: value }))}
+                                onSetActiveReply={setActiveReplyCommentId}
+                                formatTime={formatTime}
+                                hideHeader
+                                hideMedia
+                                hideCommentInput
+                                showCommentsInitially
+                            />
+
+                            <div className="mt-4 border-t border-white/10 pt-4">
+                                <form
+                                    onSubmit={(event) => {
+                                        event.preventDefault();
+                                        submitComment(post.id, activeReplyCommentId);
+                                    }}
+                                    className="space-y-3"
+                                >
+                                    {activeReplyComment && (
+                                        <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white">
+                                            <div>
+                                                Replying to{' '}
+                                                <span className="font-semibold text-white">
+                                                    @{activeReplyComment.user_name}
+                                                </span>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => setActiveReplyCommentId(null)}
+                                                className="text-sm font-semibold text-gray-300 transition hover:text-white"
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    )}
+                                    <div className="flex items-center gap-3">
+                                        <input
+                                            value={replyInputValue}
+                                            onChange={(event) => {
+                                                const value = event.target.value;
+
+                                                if (activeReplyCommentId !== null) {
+                                                    setReplyDrafts((prev) => ({ ...prev, [activeReplyCommentId]: value }));
+                                                } else {
+                                                    setCommentDrafts((prev) => ({ ...prev, [post.id]: value }));
+                                                }
+                                            }}
+                                            className="flex-1 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-gray-500 focus:border-white/20 focus:outline-none focus:ring-2 focus:ring-white/10"
+                                            placeholder={replyPlaceholder}
+                                        />
+                                        <button
+                                            type="submit"
+                                            disabled={!replyInputValue.trim()}
+                                            className="rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-50"
+                                        >
+                                            Post
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </>

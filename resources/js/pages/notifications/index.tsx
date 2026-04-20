@@ -122,8 +122,11 @@ export default function Notifications() {
 
         const { data } = notification;
 
-        // Navigate to the post detail page only when the notification contains a post reference.
-        if (data?.post_id) {
+        // Only redirect feed post likes/comments to the feed comment details page.
+        if (
+            (data?.type === 'post_liked' || data?.type === 'post_commented') &&
+            data.post_id
+        ) {
             router.visit(feedComments.show.url(data.post_id), {
                 preserveScroll: true,
             });
