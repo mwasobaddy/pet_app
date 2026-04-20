@@ -248,6 +248,13 @@ export default function PostCard({
                 </p>
             </div>
 
+            {/* Comments Count */}
+            <div className="px-3 pt-1">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {post.comments_count.toLocaleString()} comments
+                </p>
+            </div>
+
             {/* Content */}
             {post.content && (
                 <div className="px-3 pt-2">
