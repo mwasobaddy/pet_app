@@ -27,7 +27,7 @@ class MessageWallIndexRequest extends FormRequest
             'pet_category' => ['nullable', 'exists:pet_types,id'],
             'tags' => ['nullable', 'array'],
             'tags.*' => ['integer', 'exists:message_wall_tags,id'],
-            'page' => ['nullable', 'integer', 'min:1'],
+            'cursor' => ['nullable', 'string'],
         ];
     }
 }

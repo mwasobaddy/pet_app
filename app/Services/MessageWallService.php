@@ -5,14 +5,14 @@ namespace App\Services;
 use App\Models\MessageWallPost;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\CursorPaginator;
 
 class MessageWallService
 {
     /**
      * @param  array{sort?: string|null, pet_category?: int|string|null, tags?: array<int>|null}  $filters
      */
-    public function getFeed(User $user, array $filters): LengthAwarePaginator
+    public function getFeed(User $user, array $filters): CursorPaginator
     {
         $sort = (string) ($filters['sort'] ?? config('message_wall.default_sort_mode', 'latest'));
         $perPage = (int) config('message_wall.per_page', 10);
@@ -39,7 +39,7 @@ class MessageWallService
         $this->applyFiltering($query, $filters);
         $this->applySorting($query, $user, $sort);
 
-        return $query->paginate($perPage)->withQueryString();
+        return $query->cursorPaginate($perPage)->withQueryString();
     }
 
     /**

@@ -94,11 +94,9 @@ class MessageWallController extends Controller
         return response()->json([
             'posts' => $posts,
             'meta' => [
-                'current_page' => $feed->currentPage(),
-                'last_page' => $feed->lastPage(),
+                'next_cursor' => optional($feed->nextCursor())->encode(),
                 'has_more' => $feed->hasMorePages(),
                 'per_page' => $feed->perPage(),
-                'total' => $feed->total(),
             ],
             'config' => [
                 'filtering_enabled' => config('message_wall.filtering_enabled', true),
