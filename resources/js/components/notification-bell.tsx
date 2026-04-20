@@ -21,11 +21,12 @@ export function NotificationBell() {
         fetchNotifications();
 
         // Subscribe to real-time broadcast notifications
-        if (window.Echo && auth?.user?.id) {
-            window.Echo.private(`users.${auth.user.id}`)
+        const userId = auth?.user?.id;
+        if (window.Echo && userId) {
+            window.Echo.private(`users.${userId}`)
                 .notification((notification: any) => {
                     const newNotification: Notification = {
-                        id: notification.id || crypto.randomUUID(),
+                        id: notification.id || `notif-${Date.now()}`,
                         type: notification.type,
                         read_at: null,
                         created_at: new Date().toISOString(),
@@ -42,8 +43,8 @@ export function NotificationBell() {
         return () => {
             clearInterval(interval);
 
-            if (window.Echo && auth?.user?.id) {
-                window.Echo.leave(`users.${auth.user.id}`);
+            if (window.Echo && userId) {
+                window.Echo.leave(`users.${userId}`);
             }
         };
     }, [auth?.user?.id]);
