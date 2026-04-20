@@ -9,6 +9,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import type { Notification } from '@/types';
+import notifications from '@/routes/notifications';
 
 export function NotificationBell() {
     const { auth } = usePage().props;
@@ -51,7 +52,7 @@ export function NotificationBell() {
 
     const fetchNotifications = async () => {
         try {
-            const response = await fetch('/api/notifications');
+            const response = await fetch(notifications.index.url());
             const data = await response.json();
             setNotifications(data.notifications.slice(0, 5));
             setUnreadCount(data.unread_count);
@@ -62,7 +63,7 @@ export function NotificationBell() {
 
     const markAsRead = async (notificationId: string) => {
         try {
-            await fetch(`/api/notifications/${notificationId}/read`, {
+            await fetch(notifications.read.url(notificationId), {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',

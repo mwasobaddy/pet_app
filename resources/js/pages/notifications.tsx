@@ -2,6 +2,7 @@ import { Head, usePage } from '@inertiajs/react';
 import { Heart, MessageCircle, PawPrint, User } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { Notification } from '@/types';
+import notifications from '@/routes/notifications';
 
 export default function Notifications() {
     const { auth } = usePage().props;
@@ -14,6 +15,7 @@ export default function Notifications() {
 
         // Subscribe to real-time broadcast notifications
         const userId = auth?.user?.id;
+
         if (window.Echo && userId) {
             window.Echo.private(`users.${userId}`)
                 .notification((notification: any) => {
@@ -38,7 +40,7 @@ export default function Notifications() {
 
     const fetchNotifications = async () => {
         try {
-            const response = await fetch('/api/notifications');
+            const response = await fetch(notifications.index.url());
             const data = await response.json();
             setNotifications(data.notifications);
             setUnreadCount(data.unread_count);
@@ -51,7 +53,7 @@ export default function Notifications() {
 
     const markAsRead = async (notificationId: string) => {
         try {
-            await fetch(`/api/notifications/${notificationId}/read`, {
+            await fetch(notifications.read.url(notificationId), {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
