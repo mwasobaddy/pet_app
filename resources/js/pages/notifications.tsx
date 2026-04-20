@@ -1,4 +1,4 @@
-import { Head, usePage } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { Heart, MessageCircle, PawPrint, User } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import feedComments from '@/routes/feed/comments';
@@ -17,7 +17,7 @@ export default function Notifications() {
                 cache: 'no-store',
             });
             const data = await response.json();
-            setNotificationList(data.notifications);
+            setNotificationList((data.notifications ?? []).filter(Boolean));
             setUnreadCount(data.unread_count);
         } catch (error) {
             console.error('Failed to fetch notifications:', error);
@@ -37,6 +37,10 @@ export default function Notifications() {
 
             channel
                 .notification((notification: any) => {
+                    if (!notification) {
+                        return;
+                    }
+
                     const newNotification: Notification = {
                         id: notification.id || `notif-${Date.now()}`,
                         type: notification.type,
@@ -44,7 +48,7 @@ export default function Notifications() {
                         created_at: new Date().toISOString(),
                         data: notification,
                     };
-                    setNotificationList((prev) => [newNotification, ...prev]);
+                    setNotificationList((prev) => [newNotification, ...prev.filter(Boolean)]);
                     setUnreadCount((prev) => prev + 1);
                 });
 
@@ -118,9 +122,11 @@ export default function Notifications() {
 
         const { data } = notification;
 
-        // Navigate to the post detail page (like Facebook)
-        if (data.post_id) {
-            window.location.href = feedComments.show.url(data.post_id);
+        // Navigate to the post detail page only when the notification contains a post reference.
+        if (data?.post_id) {
+            router.visit(feedComments.show.url(data.post_id), {
+                preserveScroll: true,
+            });
         }
     };
 

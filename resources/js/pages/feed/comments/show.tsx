@@ -11,16 +11,20 @@ import type {
 } from '../types';
 
 interface ShowProps {
-    post: FeedPost;
+    post?: FeedPost | null;
 }
 
 export default function Show({ post: initialPost }: ShowProps) {
-    const [post, setPost] = useState<FeedPost>(initialPost);
+    const [post, setPost] = useState<FeedPost | null>(initialPost ?? null);
     const [commentDrafts, setCommentDrafts] = useState<Record<number, string>>({});
     const [replyDrafts, setReplyDrafts] = useState<Record<number, string>>({});
     const [activeReplyCommentId, setActiveReplyCommentId] = useState<number | null>(null);
 
-    const appendCommentToPost = useCallback((post: FeedPost, incomingComment: FeedComment, nextCommentsCount: number): FeedPost => {
+    const appendCommentToPost = useCallback((post: FeedPost, incomingComment: FeedComment | null | undefined, nextCommentsCount: number): FeedPost => {
+        if (!incomingComment) {
+            return post;
+        }
+
         const comments = post.comments ?? [];
 
         if (incomingComment.parent_comment_id === null) {
@@ -64,29 +68,41 @@ export default function Show({ post: initialPost }: ShowProps) {
     }, []);
 
     useEffect(() => {
-        if (!window.Echo) {
+        if (!window.Echo || !post?.id) {
             return;
         }
 
         const channel = window.Echo.private('message-wall.feed');
         channel.listen('.message-wall.post.interaction-updated', (event: PostInteractionEventPayload) => {
-            if (post.id !== event.post_id) {
+            if (post?.id !== event.post_id) {
                 return;
             }
 
-            setPost((prev) => ({
-                ...prev,
-                likes_count: event.likes_count,
-                comments_count: event.comments_count,
-                shares_count: event.shares_count,
-            }));
+            setPost((prev) => {
+                if (!prev) {
+                    return prev;
+                }
+
+                return {
+                    ...prev,
+                    likes_count: event.likes_count,
+                    comments_count: event.comments_count,
+                    shares_count: event.shares_count,
+                };
+            });
         });
         channel.listen('.message-wall.comment.created', (event: CommentCreatedEventPayload) => {
-            if (post.id !== event.post_id) {
+            if (post?.id !== event.post_id) {
                 return;
             }
 
-            setPost((prev) => appendCommentToPost(prev, event.comment, event.comments_count));
+            setPost((prev) => {
+                if (!prev) {
+                    return prev;
+                }
+
+                return appendCommentToPost(prev, event.comment, event.comments_count);
+            });
         });
 
         return () => {
@@ -94,13 +110,23 @@ export default function Show({ post: initialPost }: ShowProps) {
             channel.stopListening('.message-wall.comment.created');
             window.Echo?.leave('message-wall.feed');
         };
-    }, [post.id, appendCommentToPost]);
+    }, [post?.id, appendCommentToPost]);
 
     const updatePost = (updater: (post: FeedPost) => FeedPost) => {
-        setPost((prev) => updater(prev));
+        setPost((prev) => {
+            if (!prev) {
+                return prev;
+            }
+
+            return updater(prev);
+        });
     };
 
     const toggleLike = async (postId: number) => {
+        if (!post?.id) {
+            return;
+        }
+
         try {
             const response = await fetch(messageWallRoutes.posts.like.url(postId), {
                 method: 'POST',
@@ -120,6 +146,10 @@ export default function Show({ post: initialPost }: ShowProps) {
     };
 
     const toggleSave = async (postId: number) => {
+        if (!post?.id) {
+            return;
+        }
+
         try {
             const response = await fetch(messageWallRoutes.posts.save.url(postId), {
                 method: 'POST',
@@ -138,6 +168,10 @@ export default function Show({ post: initialPost }: ShowProps) {
     };
 
     const sharePost = async (postId: number) => {
+        if (!post?.id) {
+            return;
+        }
+
         try {
             const response = await fetch(messageWallRoutes.posts.share.url(postId), {
                 method: 'POST',
@@ -156,6 +190,10 @@ export default function Show({ post: initialPost }: ShowProps) {
     };
 
     const submitComment = async (postId: number, parentCommentId: number | null = null) => {
+        if (!post?.id) {
+            return;
+        }
+
         const body = parentCommentId === null
             ? (commentDrafts[postId] ?? '').trim()
             : (replyDrafts[parentCommentId] ?? '').trim();
@@ -208,6 +246,21 @@ export default function Show({ post: initialPost }: ShowProps) {
             minute: '2-digit',
         });
     };
+
+    if (!post) {
+        return (
+            <>
+                <Head title="Post details" />
+                <div className="min-h-screen bg-gray-50 py-4 dark:bg-black md:py-6">
+                    <div className="mx-auto max-w-2xl px-4">
+                        <div className="rounded-lg border border-gray-200 bg-white p-6 text-center text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400">
+                            Loading post details...
+                        </div>
+                    </div>
+                </div>
+            </>
+        );
+    }
 
     return (
         <>
