@@ -39,13 +39,24 @@ export function NotificationBell() {
         if (window.Echo && userId) {
             window.Echo.private(`users.${userId}`)
                 .notification((notification: any) => {
+                    const payload = notification.data ?? notification;
+                    const type = payload.type ?? notification.type ?? 'match';
+                    const message = payload.message ?? (type === 'message_wall_comment_reply'
+                        ? 'Someone replied to your comment'
+                        : payload.type ? `${type.replaceAll('_', ' ')} notification` : 'New notification');
+
                     const newNotification: Notification = {
                         id: notification.id || `notif-${Date.now()}`,
-                        type: notification.type,
+                        type: type as Notification['data']['type'],
                         read_at: null,
-                        created_at: new Date().toISOString(),
-                        data: notification,
+                        created_at: notification.created_at ?? new Date().toISOString(),
+                        data: {
+                            ...payload,
+                            type: type as Notification['data']['type'],
+                            message,
+                        },
                     };
+
                     setNotifications((prev) => [newNotification, ...prev]);
                     setUnreadCount((prev) => prev + 1);
                 });
