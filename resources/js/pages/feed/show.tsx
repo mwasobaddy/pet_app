@@ -24,7 +24,7 @@ export default function Show() {
     const [allowedSortModes, setAllowedSortModes] = useState<string[]>(['latest', 'popular', 'following']);
     const [petCategories, setPetCategories] = useState<{ id: number; name: string; icon: string | null }[]>([]);
     const [tags, setTags] = useState<{ id: number; name: string }[]>([]);
-    const [page, setPage] = useState(1);
+    const [cursor, setCursor] = useState<string | null>(null);
     const [hasMore, setHasMore] = useState(false);
     const [commentDrafts, setCommentDrafts] = useState<Record<number, string>>({});
     const [replyDrafts, setReplyDrafts] = useState<Record<number, string>>({});
@@ -92,7 +92,7 @@ export default function Show() {
         };
     }, []);
 
-    const loadFeed = useCallback(async (targetPage = 1, replace = false) => {
+    const loadFeed = useCallback(async (targetCursor: string | null = null, replace = false) => {
         if (replace) {
             setLoading(true);
         } else {
@@ -100,7 +100,11 @@ export default function Show() {
         }
 
         try {
-            const response = await fetch(messageWallRoutes.index.url({ query: { ...feedQuery, page: targetPage } }));
+            const query = {
+                ...feedQuery,
+                ...(targetCursor ? { cursor: targetCursor } : {}),
+            };
+            const response = await fetch(messageWallRoutes.index.url({ query }));
             const data: FeedResponse = await response.json();
             setFilteringEnabled(data.config.filtering_enabled);
             setAllowedSortModes(data.config.allowed_sort_modes);
@@ -116,7 +120,7 @@ export default function Show() {
 
                 return Array.from(existing.values());
             });
-            setPage(data.meta.current_page);
+            setCursor(data.meta.next_cursor ?? null);
             setHasMore(data.meta.has_more);
         } catch (error) {
             console.error('Failed to load message wall feed:', error);
@@ -127,12 +131,12 @@ export default function Show() {
     }, [feedQuery]);
 
     useEffect(() => {
-        loadFeed(1, true);
+        loadFeed(null, true);
     }, [loadFeed]);
 
     useEffect(() => {
         const intervalId = window.setInterval(() => {
-            loadFeed(1, true);
+            loadFeed(null, true);
         }, 15000);
 
         return () => {
@@ -192,7 +196,7 @@ export default function Show() {
             const first = entries[0];
 
             if (first?.isIntersecting && hasMore && !loadingMore) {
-                loadFeed(page + 1, false);
+                loadFeed(cursor, false);
             }
         }, {
             threshold: 0.4,
@@ -202,7 +206,7 @@ export default function Show() {
         return () => {
             observer.disconnect();
         };
-    }, [hasMore, loadFeed, loading, loadingMore, page]);
+    }, [hasMore, loadFeed, loading, loadingMore, cursor]);
 
     const updatePost = (postId: number, updater: (post: FeedPost) => FeedPost) => {
         setPosts((prev) => prev.map((post) => (post.id === postId ? updater(post) : post)));

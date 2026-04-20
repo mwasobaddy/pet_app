@@ -32,11 +32,9 @@ export interface FeedPost {
 export interface FeedResponse {
     posts: FeedPost[];
     meta: {
-        current_page: number;
-        last_page: number;
+        next_cursor: string | null;
         has_more: boolean;
         per_page: number;
-        total: number;
     };
     config: {
         filtering_enabled: boolean;
