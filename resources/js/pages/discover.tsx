@@ -1,6 +1,6 @@
 import { Head, usePage } from '@inertiajs/react';
 import { ArrowLeft, Filter, Heart, MapPin, Search, X } from 'lucide-react';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import MatchModal from '@/components/match-modal';
 import SwipeCard from '@/components/swipe-card';
 import * as matchingRoutes from '@/routes/matching';
@@ -81,6 +81,31 @@ export default function Discover() {
     const recommendationsRef = useRef<Recommendation[]>([]);
     const desktopCursorRef = useRef(0);
 
+    const loadRecommendations = useCallback(async () => {
+        setIsLoading(true);
+
+        try {
+            const response = await fetch(
+                matchingRoutes.recommendations.url({
+                    query: {
+                        distance,
+                        pet_type: filters.petTypeId || undefined,
+                        personality_tags: filters.personalityTagIds.length > 0 ? filters.personalityTagIds.join(',') : undefined,
+                    },
+                }),
+            );
+            const data = await response.json();
+            setRecommendations(data.recommendations);
+            setPetTypes(data.filters?.pet_types ?? []);
+            setPersonalityTags(data.filters?.personality_tags ?? []);
+            setCurrentIndex(0);
+        } catch (error) {
+            console.error('Failed to load recommendations:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [distance, filters]);
+
     // Check if there's browser history for back button
     useEffect(() => {
         setHasHistory(typeof window !== 'undefined' && window.history.length > 1);
@@ -124,31 +149,6 @@ export default function Discover() {
             window.Echo?.leave(`users.${auth.user.id}`);
         };
     }, [auth?.user?.id]);
-
-    const loadRecommendations = useCallback(async () => {
-        setIsLoading(true);
-
-        try {
-            const response = await fetch(
-                matchingRoutes.recommendations.url({
-                    query: {
-                        distance,
-                        pet_type: filters.petTypeId || undefined,
-                        personality_tags: filters.personalityTagIds.length > 0 ? filters.personalityTagIds.join(',') : undefined,
-                    },
-                }),
-            );
-            const data = await response.json();
-            setRecommendations(data.recommendations);
-            setPetTypes(data.filters?.pet_types ?? []);
-            setPersonalityTags(data.filters?.personality_tags ?? []);
-            setCurrentIndex(0);
-        } catch (error) {
-            console.error('Failed to load recommendations:', error);
-        } finally {
-            setIsLoading(false);
-        }
-    }, [distance, filters]);
 
     const getFilteredRecommendations = (items: Recommendation[], query: string) => {
         const normalized = query.trim().toLowerCase();
