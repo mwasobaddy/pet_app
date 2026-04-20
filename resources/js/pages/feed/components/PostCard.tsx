@@ -1,5 +1,5 @@
 import { Bookmark, MessageCircle, MoreHorizontal, Send, ThumbsUp } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { FeedComment, FeedPost } from '../types';
 
 interface PostCardProps {
@@ -52,8 +52,35 @@ export default function PostCard({
     const [showAllComments, setShowAllComments] = useState(false);
     const [openedReplies, setOpenedReplies] = useState<Record<number, boolean>>({});
     const [showFullContent, setShowFullContent] = useState(false);
+    const [mediaInView, setMediaInView] = useState(false);
+    const mediaRef = useRef<HTMLDivElement | null>(null);
 
     const visibleComments = showAllComments ? post.comments ?? [] : (post.comments ?? []).slice(0, 2);
+
+    useEffect(() => {
+        if (!mediaRef.current || mediaInView) {
+            return;
+        }
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setMediaInView(true);
+                    observer.disconnect();
+                }
+            },
+            {
+                rootMargin: '200px',
+                threshold: 0.1,
+            }
+        );
+
+        observer.observe(mediaRef.current);
+
+        return () => {
+            observer.disconnect();
+        };
+    }, [mediaInView]);
 
     const toggleReplies = (commentId: number) => {
         setOpenedReplies((prev) => ({
@@ -129,17 +156,33 @@ export default function PostCard({
             )}
 
             {/* Media - Full Width */}
-            {!hideMedia && post.media && post.media.type?.startsWith('image') && (
-                <div className="aspect-square w-full overflow-hidden bg-gray-100 dark:bg-gray-800">
-                    <img src={post.media.url} alt="Post" className="h-full w-full object-cover" />
-                </div>
-            )}
-
-            {!hideMedia && post.media && post.media.type?.startsWith('video') && (
-                <div className="aspect-square w-full bg-black">
-                    <video controls className="h-full w-full object-cover">
-                        <source src={post.media.url} type={post.media.type ?? undefined} />
-                    </video>
+            {!hideMedia && post.media && (
+                <div
+                    ref={mediaRef}
+                    className="aspect-square w-full overflow-hidden bg-gray-100 dark:bg-gray-800"
+                >
+                    {mediaInView ? (
+                        post.media.type?.startsWith('image') ? (
+                            <img
+                                src={post.media.url}
+                                alt="Post"
+                                loading="lazy"
+                                className="h-full w-full object-cover"
+                            />
+                        ) : post.media.type?.startsWith('video') ? (
+                            <video
+                                controls
+                                preload="none"
+                                className="h-full w-full object-cover"
+                            >
+                                <source src={post.media.url} type={post.media.type ?? undefined} />
+                            </video>
+                        ) : (
+                            <div className="h-full w-full bg-gray-200 dark:bg-gray-800" />
+                        )
+                    ) : (
+                        <div className="h-full w-full bg-gray-200 dark:bg-gray-800" />
+                    )}
                 </div>
             )}
 
