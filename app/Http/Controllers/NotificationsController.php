@@ -2,30 +2,42 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\NotificationIndexRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class NotificationsController extends Controller
 {
-    public function index(Request $request): JsonResponse
+    public function index(NotificationIndexRequest $request): JsonResponse
     {
         $user = $request->user();
+        $cursor = $request->validated()['cursor'] ?? null;
+        $perPage = 20;
 
-        $notifications = $user->notifications()
+        $pagination = $user->notifications()
             ->latest()
-            ->limit(20)
-            ->get()
+            ->orderByDesc('id')
+            ->cursorPaginate($perPage, ['*'], 'cursor', $cursor)
+            ->withQueryString();
+
+        $notifications = collect($pagination->items())
             ->map(fn ($notification) => [
                 'id' => $notification->id,
                 'type' => class_basename($notification->type),
                 'read_at' => $notification->read_at?->toISOString(),
                 'created_at' => $notification->created_at?->toISOString(),
                 'data' => $notification->data,
-            ]);
+            ])
+            ->values();
 
         return response()->json([
             'notifications' => $notifications,
             'unread_count' => $user->unreadNotifications()->count(),
+            'meta' => [
+                'next_cursor' => optional($pagination->nextCursor())->encode(),
+                'has_more' => $pagination->hasMorePages(),
+                'per_page' => $pagination->perPage(),
+            ],
         ]);
     }
 

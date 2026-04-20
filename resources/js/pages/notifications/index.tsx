@@ -1,6 +1,6 @@
 import { Head, router, usePage } from '@inertiajs/react';
 import { Heart, MessageCircle, PawPrint, User } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import feedComments from '@/routes/feed/comments';
 import notificationsRoutes from '@/routes/notifications';
 import type { Notification } from '@/types';
@@ -9,25 +9,56 @@ export default function Notifications() {
     const { auth } = usePage().props;
     const [notificationList, setNotificationList] = useState<Notification[]>([]);
     const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
+    const [cursor, setCursor] = useState<string | null>(null);
+    const [hasMore, setHasMore] = useState(false);
+    const observerRef = useRef<HTMLDivElement | null>(null);
 
-    const fetchNotifications = useCallback(async () => {
+    const loadNotifications = useCallback(async (targetCursor: string | null = null, replace = false) => {
+        if (replace) {
+            setLoading(true);
+        } else {
+            setLoadingMore(true);
+        }
+
         try {
-            const response = await fetch(notificationsRoutes.index.get().url, {
+            const query = {
+                ...(targetCursor ? { cursor: targetCursor } : {}),
+            };
+            const response = await fetch(notificationsRoutes.index.get({ query }).url, {
                 cache: 'no-store',
             });
             const data = await response.json();
-            setNotificationList((data.notifications ?? []).filter(Boolean));
+
+            setNotificationList((prev) => {
+                if (replace) {
+                    return (data.notifications ?? []).filter(Boolean);
+                }
+
+                const existing = new Map(prev.map((notification) => [notification.id, notification]));
+                (data.notifications ?? []).filter(Boolean).forEach((notification: Notification) => {
+                    existing.set(notification.id, notification);
+                });
+
+                return Array.from(existing.values());
+            });
             setUnreadCount(data.unread_count);
+            setCursor(data.meta.next_cursor ?? null);
+            setHasMore(data.meta.has_more);
         } catch (error) {
             console.error('Failed to fetch notifications:', error);
         } finally {
-            setLoading(false);
+            if (replace) {
+                setLoading(false);
+            } else {
+                setLoadingMore(false);
+            }
         }
     }, []);
 
     useEffect(() => {
-        fetchNotifications();
+        loadNotifications(null, true);
 
         // Subscribe to real-time broadcast notifications
         const userId = auth?.user?.id;
@@ -58,12 +89,12 @@ export default function Notifications() {
         }
 
         const interval = window.setInterval(() => {
-            fetchNotifications();
+            loadNotifications(null, true);
         }, 30000);
 
         const handleVisibilityChange = () => {
             if (document.visibilityState === 'visible') {
-                fetchNotifications();
+                loadNotifications(null, true);
             }
         };
 
@@ -77,7 +108,31 @@ export default function Notifications() {
                 window.Echo.leave(`users.${userId}`);
             }
         };
-    }, [auth?.user?.id, fetchNotifications]);
+    }, [auth?.user?.id, loadNotifications]);
+
+    useEffect(() => {
+        const target = observerRef.current;
+
+        if (!target || !hasMore || loadingMore || loading) {
+            return;
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+            const first = entries[0];
+
+            if (first?.isIntersecting && hasMore && !loadingMore) {
+                loadNotifications(cursor, false);
+            }
+        }, {
+            threshold: 0.4,
+        });
+
+        observer.observe(target);
+
+        return () => {
+            observer.disconnect();
+        };
+    }, [cursor, hasMore, loading, loadingMore, loadNotifications]);
 
     const markAsRead = async (notificationId: string) => {
         try {
@@ -230,6 +285,17 @@ return `${Math.floor(seconds / 86400)}d ago`;
                             ))}
                         </div>
                     )}
+                    {loadingMore && (
+                        <div className="flex items-center justify-center py-4">
+                            <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-red-500" />
+                        </div>
+                    )}
+                    {!loading && !hasMore && notificationList.length > 0 && (
+                        <div className="py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                            You’re all caught up.
+                        </div>
+                    )}
+                    <div ref={observerRef} className="h-6" />
                 </div>
             </div>
         </>
