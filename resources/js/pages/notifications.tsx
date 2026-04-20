@@ -13,7 +13,9 @@ export default function Notifications() {
 
     const fetchNotifications = useCallback(async () => {
         try {
-            const response = await fetch(notificationsRoutes.index.get().url);
+            const response = await fetch(notificationsRoutes.index.get().url, {
+                cache: 'no-store',
+            });
             const data = await response.json();
             setNotificationList(data.notifications);
             setUnreadCount(data.unread_count);
@@ -31,7 +33,9 @@ export default function Notifications() {
         const userId = auth?.user?.id;
 
         if (window.Echo && userId) {
-            window.Echo.private(`users.${userId}`)
+            const channel = window.Echo.private(`users.${userId}`);
+
+            channel
                 .notification((notification: any) => {
                     const newNotification: Notification = {
                         id: notification.id || `notif-${Date.now()}`,
@@ -43,9 +47,28 @@ export default function Notifications() {
                     setNotificationList((prev) => [newNotification, ...prev]);
                     setUnreadCount((prev) => prev + 1);
                 });
+
+            channel.error((error: unknown) => {
+                console.error('Notifications channel subscription failed:', error);
+            });
         }
 
+        const interval = window.setInterval(() => {
+            fetchNotifications();
+        }, 30000);
+
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                fetchNotifications();
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
         return () => {
+            window.clearInterval(interval);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+
             if (window.Echo && userId) {
                 window.Echo.leave(`users.${userId}`);
             }
