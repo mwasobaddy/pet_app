@@ -23,14 +23,14 @@ class ChatController extends Controller
     public function index(Request $request): Response|JsonResponse
     {
         $user = auth()->user();
-        $cursor = $request->validate([ 'cursor' => ['nullable', 'string'] ])['cursor'] ?? null;
+        $cursor = $request->validate(['cursor' => ['nullable', 'string']])['cursor'] ?? null;
 
         $pagination = $this->chatQueryService->getConversations($user, $cursor);
         $conversations = collect($pagination->items())
             ->map(fn (Conversation $conversation) => $this->chatQueryService->formatConversation($conversation, $user))
             ->values();
 
-        if ($request->wantsJson() || $request->ajax()) {
+        if (($request->wantsJson() || $request->ajax()) && ! $request->header('X-Inertia')) {
             return response()->json([
                 'conversations' => $conversations,
                 'meta' => [
@@ -64,13 +64,13 @@ class ChatController extends Controller
             'userTwo:id,first_name,other_names',
         ]);
 
-        $cursor = $request->validate([ 'cursor' => ['nullable', 'string'] ])['cursor'] ?? null;
+        $cursor = $request->validate(['cursor' => ['nullable', 'string']])['cursor'] ?? null;
         $pagination = $this->chatQueryService->getConversationMessages($conversation, $cursor);
         $messages = collect($pagination->items())
             ->map(fn ($message) => $this->chatQueryService->formatMessage($message))
             ->values();
 
-        if ($request->wantsJson() || $request->ajax()) {
+        if (($request->wantsJson() || $request->ajax()) && ! $request->header('X-Inertia')) {
             return response()->json([
                 'messages' => $messages,
                 'meta' => [
