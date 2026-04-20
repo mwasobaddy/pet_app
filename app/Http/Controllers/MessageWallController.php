@@ -12,7 +12,10 @@ use App\Models\MessageWallTag;
 use App\Models\PetType;
 use App\Services\MessageWallService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class MessageWallController extends Controller
 {
@@ -106,6 +109,89 @@ class MessageWallController extends Controller
                 'tags' => MessageWallTag::query()->select('id', 'name')->orderBy('name')->limit(50)->get(),
             ],
         ]);
+    }
+
+    public function show(Request $request, MessageWallPost $messageWallPost): Response
+    {
+        $messageWallPost->load([
+            'user:id,first_name,other_names',
+            'petProfile:id,name,pet_type_id,user_id',
+            'petProfile.petType:id,name,icon',
+            'tags:id,name,slug',
+            'comments' => function ($commentQuery) {
+                $commentQuery
+                    ->whereNull('parent_comment_id')
+                    ->with([
+                        'user:id,first_name,other_names',
+                        'replies.user:id,first_name,other_names',
+                    ])
+                    ->orderBy('created_at');
+            },
+        ]);
+
+        $post = $this->formatPost($messageWallPost, $request->user()->id);
+
+        return Inertia::render('feed/comments/show', [
+            'post' => $post,
+        ]);
+    }
+
+    private function formatPost(MessageWallPost $post, int $currentUserId): array
+    {
+        $userHasLiked = MessageWallLike::query()
+            ->where('user_id', $currentUserId)
+            ->where('message_wall_post_id', $post->id)
+            ->exists();
+
+        $userHasSaved = MessageWallSave::query()
+            ->where('user_id', $currentUserId)
+            ->where('message_wall_post_id', $post->id)
+            ->exists();
+
+        return [
+            'id' => $post->id,
+            'user_id' => $post->user_id,
+            'pet_name' => $post->petProfile?->name,
+            'user_name' => $post->user?->name,
+            'timestamp' => $post->created_at?->toIso8601String(),
+            'location' => $post->location,
+            'content' => $post->body,
+            'hashtags' => $post->tags->pluck('name')->values(),
+            'media' => $post->media_path ? [
+                'type' => $post->media_type,
+                'url' => asset('storage/'.$post->media_path),
+            ] : null,
+            'likes_count' => $post->likes_count,
+            'comments_count' => $post->comments_count,
+            'shares_count' => $post->shares_count,
+            'user_has_liked' => $userHasLiked,
+            'user_has_saved' => $userHasSaved,
+            'comments' => $post->comments
+                ->map(function ($comment) {
+                    return [
+                        'id' => $comment->id,
+                        'user_id' => $comment->user_id,
+                        'user_name' => $comment->user?->name,
+                        'body' => $comment->body,
+                        'parent_comment_id' => $comment->parent_comment_id,
+                        'created_at' => $comment->created_at?->toIso8601String(),
+                        'replies' => $comment->replies
+                            ->map(function ($reply) {
+                                return [
+                                    'id' => $reply->id,
+                                    'user_id' => $reply->user_id,
+                                    'user_name' => $reply->user?->name,
+                                    'body' => $reply->body,
+                                    'parent_comment_id' => $reply->parent_comment_id,
+                                    'created_at' => $reply->created_at?->toIso8601String(),
+                                    'replies' => [],
+                                ];
+                            })
+                            ->values(),
+                    ];
+                })
+                ->values(),
+        ];
     }
 
     public function store(StoreMessageWallPostRequest $request): JsonResponse
