@@ -51,7 +51,7 @@ class CheckUserTier
 
         // Check if user has any role (tier selected)
         if ($user && ! $user->hasAnyRole('free_user|vip_user|svip_user')) {
-            return redirect()->route('subscription.select');
+            return redirect()->guest(route('subscription.select'));
         }
 
         return $next($request);

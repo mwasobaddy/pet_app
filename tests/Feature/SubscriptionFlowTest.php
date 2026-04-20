@@ -84,3 +84,29 @@ test('payment page for free tier redirects to subscription select', function () 
 
     $response->assertRedirect(route('subscription.select'));
 });
+
+test('subscribing after tier redirect returns to intended feed route', function () {
+    $tier = createFreeTier();
+    $user = User::factory()->create(['email_verified_at' => now()]);
+
+    $petType = PetType::create(['name' => 'Dog', 'icon' => '🐕']);
+
+    PetProfile::create([
+        'user_id' => $user->id,
+        'pet_type_id' => $petType->id,
+        'name' => 'Buddy',
+        'age' => 3,
+        'gender' => 'Male',
+        'description' => 'Friendly dog',
+    ]);
+
+    $response = $this->actingAs($user)
+        ->get(route('feed'));
+
+    $response->assertRedirect(route('subscription.select'));
+
+    $subscriptionResponse = $this->actingAs($user)
+        ->post(route('subscription.store', $tier));
+
+    $subscriptionResponse->assertRedirect(route('feed'));
+});
