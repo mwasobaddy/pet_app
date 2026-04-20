@@ -44,6 +44,8 @@ class MatchNotification extends Notification
             : $petProfile1;
 
         return [
+            'type' => 'match',
+            'message' => "{$otherPet->name} matched with you",
             'match_id' => $this->match->id,
             'matched_at' => $this->match->matched_at?->toISOString(),
             'other_pet' => [

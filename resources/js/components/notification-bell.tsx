@@ -28,6 +28,53 @@ export function NotificationBell() {
         }
     }, []);
 
+    const getNotificationType = (notification: any, payload: any) => {
+        if (payload.type) {
+            return payload.type;
+        }
+
+        const notificationClass = notification.type?.toString() ?? '';
+
+        if (notificationClass.includes('MatchNotification')) {
+            return 'match';
+        }
+
+        if (notificationClass.includes('PostLikedNotification')) {
+            return 'post_liked';
+        }
+
+        if (notificationClass.includes('PostCommentedNotification')) {
+            return 'post_commented';
+        }
+
+        if (notificationClass.includes('MessageWallCommentReplyNotification')) {
+            return 'message_wall_comment_reply';
+        }
+
+        return 'match';
+    };
+
+    const getNotificationMessage = (type: string, payload: any) => {
+        if (payload.message) {
+            return payload.message;
+        }
+
+        switch (type) {
+            case 'post_liked':
+                return `${payload.liker_name ?? 'Someone'} liked your post`;
+            case 'post_commented':
+                return `${payload.commenter_name ?? 'Someone'} commented on your post`;
+            case 'message_wall_comment_reply':
+                return `${payload.replier_name ?? 'Someone'} replied to your comment`;
+            case 'match':
+                return payload.other_pet?.name
+                    ? `${payload.other_pet.name} matched with you`
+                    : 'You have a new match';
+            default:
+                return 'New notification';
+        }
+    };
+
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchNotifications();
@@ -40,10 +87,8 @@ export function NotificationBell() {
             window.Echo.private(`users.${userId}`)
                 .notification((notification: any) => {
                     const payload = notification.data ?? notification;
-                    const type = payload.type ?? notification.type ?? 'match';
-                    const message = payload.message ?? (type === 'message_wall_comment_reply'
-                        ? 'Someone replied to your comment'
-                        : payload.type ? `${type.replaceAll('_', ' ')} notification` : 'New notification');
+                    const type = getNotificationType(notification, payload);
+                    const message = getNotificationMessage(type, payload);
 
                     const newNotification: Notification = {
                         id: notification.id || `notif-${Date.now()}`,
