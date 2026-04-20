@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Conversation;
 use App\Models\PetMatch;
 use App\Models\User;
+use Illuminate\Pagination\CursorPaginator;
 use Illuminate\Support\Collection;
 
 class ChatQueryService
@@ -12,8 +13,10 @@ class ChatQueryService
     /**
      * Get paginated conversations for a user.
      */
-    public function getConversations(User $user): Collection
+    public function getConversations(User $user, ?string $cursor = null): CursorPaginator
     {
+        $perPage = 20;
+
         return Conversation::query()
             ->where('user_one_id', $user->id)
             ->orWhere('user_two_id', $user->id)
@@ -29,20 +32,24 @@ class ChatQueryService
                 },
             ])
             ->orderByDesc('last_message_at')
-            ->get()
-            ->map(fn (Conversation $conversation) => $this->formatConversation($conversation, $user));
+            ->orderByDesc('id')
+            ->cursorPaginate($perPage, ['*'], 'cursor', $cursor)
+            ->withQueryString();
     }
 
     /**
      * Get messages for a conversation with proper formatting.
      */
-    public function getConversationMessages(Conversation $conversation): Collection
+    public function getConversationMessages(Conversation $conversation, ?string $cursor = null): CursorPaginator
     {
+        $perPage = 20;
+
         return $conversation->messages()
             ->with('sender:id,first_name,other_names')
-            ->orderBy('created_at')
-            ->get()
-            ->map(fn ($message) => $this->formatMessage($message));
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->cursorPaginate($perPage, ['*'], 'cursor', $cursor)
+            ->withQueryString();
     }
 
     /**
@@ -74,14 +81,14 @@ class ChatQueryService
     /**
      * Format conversation for API response.
      */
-    private function formatConversation(Conversation $conversation, User $user): array
+    public function formatConversation(Conversation $conversation, User $user): array
     {
         $other = $conversation->otherParticipant($user->id);
 
         return [
             'id' => $conversation->id,
             'match_id' => $conversation->match_id,
-            'last_message_at' => $conversation->last_message_at,
+            'last_message_at' => $conversation->last_message_at?->toIso8601String(),
             'unread_count' => $conversation->unread_count,
             'other_user' => $other ? [
                 'id' => $other->id,
@@ -94,7 +101,7 @@ class ChatQueryService
     /**
      * Format message for API response.
      */
-    private function formatMessage($message): array
+    public function formatMessage($message): array
     {
         return [
             'id' => $message->id,
@@ -103,9 +110,9 @@ class ChatQueryService
             'media_url' => $message->media_path ? asset("storage/{$message->media_path}") : null,
             'sender_id' => $message->sender_id,
             'sender_name' => $message->sender?->name,
-            'read_at' => $message->read_at,
+            'read_at' => $message->read_at?->toIso8601String(),
             'read_by_user_id' => $message->read_by_user_id,
-            'created_at' => $message->created_at,
+            'created_at' => $message->created_at?->toIso8601String(),
         ];
     }
 }

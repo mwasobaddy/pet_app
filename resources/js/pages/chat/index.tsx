@@ -1,5 +1,6 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import chatRoutes from '@/routes/chat';
 import type { Auth } from '@/types/auth';
 
 interface ConversationSummary {
@@ -20,20 +21,66 @@ interface ConversationSummary {
     } | null;
 }
 
-export default function ChatIndex({ conversations: initialConversations }: { conversations: ConversationSummary[] }) {
+export default function ChatIndex({
+    conversations: initialConversations,
+    conversations_cursor: initialCursor = null,
+    conversations_has_more: initialHasMore = false,
+}: {
+    conversations: ConversationSummary[];
+    conversations_cursor?: string | null;
+    conversations_has_more?: boolean;
+}) {
     const { auth } = usePage<{ auth: Auth }>().props;
     const [conversations, setConversations] = useState<ConversationSummary[]>(initialConversations);
+    const [cursor, setCursor] = useState<string | null>(initialCursor);
+    const [hasMore, setHasMore] = useState(initialHasMore);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const observerRef = useRef<HTMLDivElement | null>(null);
+
+    const loadConversations = useCallback(async (targetCursor: string | null) => {
+        if (!targetCursor) {
+            return;
+        }
+
+        setLoadingMore(true);
+
+        try {
+            const response = await fetch(chatRoutes.index.get({ query: { cursor: targetCursor } }).url, {
+                cache: 'no-store',
+                headers: {
+                    Accept: 'application/json',
+                },
+            });
+            const data = await response.json();
+
+            setConversations((prev) => {
+                const existing = new Map(prev.map((conversation) => [conversation.id, conversation]));
+
+                (data.conversations ?? []).filter(Boolean).forEach((conversation: ConversationSummary) => {
+                    existing.set(conversation.id, conversation);
+                });
+
+                return Array.from(existing.values());
+            });
+            setCursor(data.meta.next_cursor ?? null);
+            setHasMore(data.meta.has_more);
+        } catch (error) {
+            console.error('Failed to load conversations:', error);
+        } finally {
+            setLoadingMore(false);
+        }
+    }, []);
 
     useEffect(() => {
         if (!window.Echo) {
             return;
         }
 
-        // Subscribe to all conversation channels
-        initialConversations.forEach((conversation) => {
-            const channel = window.Echo.private(`chat.${conversation.id}`);
+        const channels = conversations.map((conversation) => window.Echo.private(`chat.${conversation.id}`));
 
-            // Listen for new messages
+        channels.forEach((channel, index) => {
+            const conversation = conversations[index];
+
             channel.listen('.message.sent', (event: { message: { id: number; sender_id: number; body: string | null; media_type: string | null; created_at: string } }) => {
                 setConversations((prev) =>
                     prev.map((conv) =>
@@ -49,7 +96,6 @@ export default function ChatIndex({ conversations: initialConversations }: { con
                 );
             });
 
-            // Listen for read status updates
             channel.listen('.message.read', (event: { message_ids: number[]; reader_id: number }) => {
                 if (event.reader_id !== auth.user.id) {
                     setConversations((prev) =>
@@ -67,11 +113,35 @@ export default function ChatIndex({ conversations: initialConversations }: { con
         });
 
         return () => {
-            initialConversations.forEach((conversation) => {
+            conversations.forEach((conversation) => {
                 window.Echo?.leave(`chat.${conversation.id}`);
             });
         };
-    }, [initialConversations, auth.user.id]);
+    }, [conversations, auth.user.id]);
+
+    useEffect(() => {
+        const target = observerRef.current;
+
+        if (!target || !hasMore || loadingMore) {
+            return;
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+            const first = entries[0];
+
+            if (first?.isIntersecting && hasMore && !loadingMore && cursor) {
+                loadConversations(cursor);
+            }
+        }, {
+            threshold: 0.4,
+        });
+
+        observer.observe(target);
+
+        return () => {
+            observer.disconnect();
+        };
+    }, [cursor, hasMore, loadingMore, loadConversations]);
 
     return (
         <>

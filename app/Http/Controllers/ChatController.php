@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Conversation;
 use App\Models\PetMatch;
 use App\Services\ChatQueryService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -18,19 +20,38 @@ class ChatController extends Controller
     /**
      * Get all conversations for the authenticated user.
      */
-    public function index(): Response
+    public function index(Request $request): Response|JsonResponse
     {
-        $conversations = $this->chatQueryService->getConversations(auth()->user());
+        $user = auth()->user();
+        $cursor = $request->validate([ 'cursor' => ['nullable', 'string'] ])['cursor'] ?? null;
+
+        $pagination = $this->chatQueryService->getConversations($user, $cursor);
+        $conversations = collect($pagination->items())
+            ->map(fn (Conversation $conversation) => $this->chatQueryService->formatConversation($conversation, $user))
+            ->values();
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'conversations' => $conversations,
+                'meta' => [
+                    'next_cursor' => optional($pagination->nextCursor())->encode(),
+                    'has_more' => $pagination->hasMorePages(),
+                    'per_page' => $pagination->perPage(),
+                ],
+            ]);
+        }
 
         return Inertia::render('chat/index', [
             'conversations' => $conversations,
+            'conversations_cursor' => optional($pagination->nextCursor())->encode(),
+            'conversations_has_more' => $pagination->hasMorePages(),
         ]);
     }
 
     /**
      * Show a specific conversation with all messages.
      */
-    public function show(Conversation $conversation): Response
+    public function show(Request $request, Conversation $conversation): Response|JsonResponse
     {
         $user = auth()->user();
 
@@ -43,8 +64,24 @@ class ChatController extends Controller
             'userTwo:id,first_name,other_names',
         ]);
 
+        $cursor = $request->validate([ 'cursor' => ['nullable', 'string'] ])['cursor'] ?? null;
+        $pagination = $this->chatQueryService->getConversationMessages($conversation, $cursor);
+        $messages = collect($pagination->items())
+            ->map(fn ($message) => $this->chatQueryService->formatMessage($message))
+            ->values();
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'messages' => $messages,
+                'meta' => [
+                    'next_cursor' => optional($pagination->nextCursor())->encode(),
+                    'has_more' => $pagination->hasMorePages(),
+                    'per_page' => $pagination->perPage(),
+                ],
+            ]);
+        }
+
         $other = $conversation->otherParticipant($user->id);
-        $messages = $this->chatQueryService->getConversationMessages($conversation);
 
         return Inertia::render('chat/show', [
             'conversation' => [
@@ -56,6 +93,8 @@ class ChatController extends Controller
                 ] : null,
             ],
             'messages' => $messages,
+            'messages_cursor' => optional($pagination->nextCursor())->encode(),
+            'messages_has_more' => $pagination->hasMorePages(),
         ]);
     }
 

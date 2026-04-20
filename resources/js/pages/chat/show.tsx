@@ -1,6 +1,7 @@
 import { Head, usePage } from '@inertiajs/react';
 import { Paperclip, Send } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import chatRoutes from '@/routes/chat';
 import type { Auth } from '@/types/auth';
 
 interface ConversationDetails {
@@ -24,17 +25,96 @@ interface ChatMessage {
     created_at: string;
 }
 
-export default function ChatShow({ conversation, messages }: { conversation: ConversationDetails; messages: ChatMessage[] }) {
+export default function ChatShow({
+    conversation,
+    messages,
+    messages_cursor: initialCursor = null,
+    messages_has_more: initialHasMore = false,
+}: {
+    conversation: ConversationDetails;
+    messages: ChatMessage[];
+    messages_cursor?: string | null;
+    messages_has_more?: boolean;
+}) {
     const { auth } = usePage<{ auth: Auth }>().props;
     const [items, setItems] = useState<ChatMessage[]>(messages);
     const [messageBody, setMessageBody] = useState('');
     const [media, setMedia] = useState<File | null>(null);
     const [isSending, setIsSending] = useState(false);
     const [isTyping, setIsTyping] = useState(false);
+    const [messagesCursor, setMessagesCursor] = useState<string | null>(initialCursor);
+    const [hasMoreMessages, setHasMoreMessages] = useState(initialHasMore);
+    const [loadingOlderMessages, setLoadingOlderMessages] = useState(false);
     const typingTimeout = useRef<number | null>(null);
     const listRef = useRef<HTMLDivElement | null>(null);
+    const topRef = useRef<HTMLDivElement | null>(null);
 
     const currentUserId = auth.user.id;
+
+    const loadOlderMessages = useCallback(async () => {
+        if (!messagesCursor) {
+            return;
+        }
+
+        setLoadingOlderMessages(true);
+
+        try {
+            const response = await fetch(chatRoutes.show.get({
+                args: conversation.id,
+                query: { cursor: messagesCursor },
+            }).url, {
+                cache: 'no-store',
+                headers: {
+                    Accept: 'application/json',
+                },
+            });
+            const data = await response.json();
+
+            setItems((prev) => {
+                const existing = new Map(prev.map((message) => [message.id, message]));
+                (data.messages ?? []).filter(Boolean).forEach((message: ChatMessage) => {
+                    existing.set(message.id, message);
+                });
+
+                return Array.from(existing.values());
+            });
+            setMessagesCursor(data.meta.next_cursor ?? null);
+            setHasMoreMessages(data.meta.has_more);
+        } catch (error) {
+            console.error('Failed to load older messages:', error);
+        } finally {
+            setLoadingOlderMessages(false);
+        }
+    }, [conversation.id, messagesCursor]);
+
+    useEffect(() => {
+        const root = listRef.current;
+        const target = topRef.current;
+
+        if (!root || !target || !hasMoreMessages || loadingOlderMessages) {
+            return;
+        }
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                const first = entries[0];
+
+                if (first?.isIntersecting) {
+                    loadOlderMessages();
+                }
+            },
+            {
+                root,
+                threshold: 0.1,
+            }
+        );
+
+        observer.observe(target);
+
+        return () => {
+            observer.disconnect();
+        };
+    }, [hasMoreMessages, loadingOlderMessages, loadOlderMessages]);
 
     const sortedItems = useMemo(
         () => [...items].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()),
@@ -166,6 +246,7 @@ export default function ChatShow({ conversation, messages }: { conversation: Con
 
                         {/* Messages */}
                         <div ref={listRef} className="flex-1 min-h-0 space-y-4 overflow-y-auto p-4 bg-gradient-to-b from-transparent to-orange-50/30 dark:to-gray-900/30">
+                            <div ref={topRef} className="h-4" />
                             {sortedItems.map((message) => {
                                 const isMine = message.sender_id === currentUserId;
                                 const showRead = isMine && message.read_at;
@@ -202,6 +283,11 @@ export default function ChatShow({ conversation, messages }: { conversation: Con
                                     </div>
                                 );
                             })}
+                            {loadingOlderMessages && (
+                                <div className="flex items-center justify-center py-4">
+                                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-red-500" />
+                                </div>
+                            )}
                         </div>
 
                         {/* Input Area */}
