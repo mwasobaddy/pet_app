@@ -41,7 +41,7 @@ class MessageWallInteractionController extends Controller
 
             // Notify post author (if not liking their own post)
             if ($messageWallPost->user_id !== $user->id) {
-                $messageWallPost->user->notify(new PostLikedNotification(
+                $messageWallPost->user->notifyNow(new PostLikedNotification(
                     postId: $messageWallPost->id,
                     likerName: $user->name,
                     petName: $messageWallPost->petProfile?->name,
@@ -82,7 +82,7 @@ class MessageWallInteractionController extends Controller
 
         // Notify post author (if not commenting on their own post)
         if ($messageWallPost->user_id !== $request->user()->id) {
-            $messageWallPost->user->notify(new PostCommentedNotification(
+            $messageWallPost->user->notifyNow(new PostCommentedNotification(
                 postId: $messageWallPost->id,
                 commentId: $comment->id,
                 commenterName: $request->user()->name,
