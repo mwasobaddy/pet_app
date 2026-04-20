@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { Heart, MessageCircle } from 'lucide-react';
 import { Link } from '@inertiajs/react';
+import { Heart, MessageCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 interface MatchImage {
     url: string;
@@ -35,6 +35,7 @@ export default function MatchesList() {
 
     const loadMatches = async () => {
         setIsLoading(true);
+
         try {
             const response = await fetch('/api/matching/matches');
             const data = await response.json();

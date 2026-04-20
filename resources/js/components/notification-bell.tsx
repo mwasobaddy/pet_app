@@ -1,15 +1,15 @@
 import { router, usePage } from '@inertiajs/react';
 import { Bell } from 'lucide-react';
 import { Heart, MessageCircle, PawPrint } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import notificationRoutes from '@/routes/notifications';
 import type { Notification } from '@/types';
-import notifications from '@/routes/notifications';
 
 export function NotificationBell() {
     const { auth } = usePage().props;
@@ -17,12 +17,25 @@ export function NotificationBell() {
     const [unreadCount, setUnreadCount] = useState(0);
     const [isOpen, setIsOpen] = useState(false);
 
+    const fetchNotifications = useCallback(async () => {
+        try {
+            const response = await fetch(notificationRoutes.index.url());
+            const data = await response.json();
+            setNotifications(data.notifications.slice(0, 5));
+            setUnreadCount(data.unread_count);
+        } catch (error) {
+            console.error('Failed to fetch notifications:', error);
+        }
+    }, []);
+
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/immutability
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchNotifications();
 
         // Subscribe to real-time broadcast notifications
+
         const userId = auth?.user?.id;
+
         if (window.Echo && userId) {
             window.Echo.private(`users.${userId}`)
                 .notification((notification: any) => {
@@ -48,22 +61,11 @@ export function NotificationBell() {
                 window.Echo.leave(`users.${userId}`);
             }
         };
-    }, [auth?.user?.id]);
-
-    const fetchNotifications = async () => {
-        try {
-            const response = await fetch(notifications.index.url());
-            const data = await response.json();
-            setNotifications(data.notifications.slice(0, 5));
-            setUnreadCount(data.unread_count);
-        } catch (error) {
-            console.error('Failed to fetch notifications:', error);
-        }
-    };
+    }, [auth?.user?.id, fetchNotifications]);
 
     const markAsRead = async (notificationId: string) => {
         try {
-            await fetch(notifications.read.url(notificationId), {
+            await fetch(notificationRoutes.read.url(notificationId), {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',

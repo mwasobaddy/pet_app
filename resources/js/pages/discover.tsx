@@ -89,7 +89,7 @@ export default function Discover() {
     // Load recommendations on mount
     useEffect(() => {
         loadRecommendations();
-    }, []);
+    }, [loadRecommendations]);
 
     useEffect(() => {
         if (!auth?.user?.id || !window.Echo) {
@@ -125,7 +125,7 @@ export default function Discover() {
         };
     }, [auth?.user?.id]);
 
-    const loadRecommendations = async () => {
+    const loadRecommendations = useCallback(async () => {
         setIsLoading(true);
 
         try {
@@ -148,7 +148,7 @@ export default function Discover() {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [distance, filters]);
 
     const getFilteredRecommendations = (items: Recommendation[], query: string) => {
         const normalized = query.trim().toLowerCase();

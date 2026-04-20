@@ -16,7 +16,7 @@ interface Tier {
 export default function PaymentPage({ tier, paymentMethods, cycles }: { tier: Tier; paymentMethods: string[]; cycles: string[] }) {
     const [selectedCycle, setSelectedCycle] = useState<string>('monthly');
     const [selectedMethod, setSelectedMethod] = useState<string>(paymentMethods[0] || 'paypal');
-    const { data, post, processing, setData } = useForm({
+    const { post, processing, setData } = useForm({
         payment_method: paymentMethods[0] || 'paypal',
         subscription_cycle: 'monthly',
     });

@@ -1,5 +1,5 @@
-import { Heart, MessageCircle } from 'lucide-react';
 import { Link } from '@inertiajs/react';
+import { Heart, MessageCircle } from 'lucide-react';
 
 interface MatchImage {
     url: string;
@@ -25,7 +25,9 @@ interface MatchModalProps {
 }
 
 export default function MatchModal({ isOpen, matchedPet, matchId, onClose }: MatchModalProps) {
-    if (!isOpen || !matchedPet) return null;
+    if (!isOpen || !matchedPet) {
+        return null;
+    }
 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
