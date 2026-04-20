@@ -3,6 +3,7 @@
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\ChatController;
+use App\Http\Controllers\Debug\RealtimeNotificationsDebugController;
 use App\Http\Controllers\MatchingController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\MessageWallController;
@@ -68,6 +69,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('api/notifications')->name('notifications.')->group(function () {
         Route::get('/', [NotificationsController::class, 'index'])->name('index');
         Route::post('{notification}/read', [NotificationsController::class, 'markRead'])->name('read');
+    });
+
+    // Debug Routes (API)
+    Route::prefix('api/debug')->name('debug.')->group(function () {
+        Route::get('realtime-notifications', RealtimeNotificationsDebugController::class)
+            ->name('realtime-notifications');
     });
 
     // Chat Routes
