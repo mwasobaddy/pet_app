@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Events\MessageWallPostCreated;
 use App\Http\Requests\MessageWallIndexRequest;
 use App\Http\Requests\StoreMessageWallPostRequest;
+use App\Models\MessageWallComment;
 use App\Models\MessageWallLike;
 use App\Models\MessageWallPost;
 use App\Models\MessageWallSave;
@@ -118,25 +119,35 @@ class MessageWallController extends Controller
             'petProfile:id,name,pet_type_id,user_id',
             'petProfile.petType:id,name,icon',
             'tags:id,name,slug',
-            'comments' => function ($commentQuery) {
-                $commentQuery
-                    ->whereNull('parent_comment_id')
-                    ->with([
-                        'user:id,first_name,other_names',
-                        'replies.user:id,first_name,other_names',
-                    ])
-                    ->orderBy('created_at');
-            },
         ]);
 
-        $post = $this->formatPost($messageWallPost, $request->user()->id);
+        $comments = MessageWallComment::query()
+            ->with('user:id,first_name,other_names')
+            ->where('message_wall_post_id', $messageWallPost->id)
+            ->orderBy('created_at')
+            ->get()
+            ->map(function (MessageWallComment $comment) {
+                return [
+                    'id' => $comment->id,
+                    'user_id' => $comment->user_id,
+                    'user_name' => $comment->user?->name,
+                    'body' => $comment->body,
+                    'parent_comment_id' => $comment->parent_comment_id,
+                    'created_at' => $comment->created_at?->toIso8601String(),
+                    'replies' => [],
+                ];
+            })
+            ->all();
+
+        $commentTree = $this->buildCommentTree($comments);
+        $post = $this->formatPost($messageWallPost, $request->user()->id, $commentTree);
 
         return Inertia::render('feed/comments/show', [
             'post' => $post,
         ]);
     }
 
-    private function formatPost(MessageWallPost $post, int $currentUserId): array
+    private function formatPost(MessageWallPost $post, int $currentUserId, ?array $comments = null): array
     {
         $userHasLiked = MessageWallLike::query()
             ->where('user_id', $currentUserId)
@@ -166,7 +177,7 @@ class MessageWallController extends Controller
             'shares_count' => $post->shares_count,
             'user_has_liked' => $userHasLiked,
             'user_has_saved' => $userHasSaved,
-            'comments' => $post->comments
+            'comments' => $comments ?? $post->comments
                 ->map(function ($comment) {
                     return [
                         'id' => $comment->id,
@@ -192,6 +203,28 @@ class MessageWallController extends Controller
                 })
                 ->values(),
         ];
+    }
+
+    private function buildCommentTree(array $comments): array
+    {
+        $children = [];
+
+        foreach ($comments as $comment) {
+            $children[$comment['parent_comment_id']][] = $comment;
+        }
+
+        $build = function ($parentId) use (&$build, $children): array {
+            $tree = [];
+
+            foreach ($children[$parentId] ?? [] as $comment) {
+                $comment['replies'] = $build($comment['id']);
+                $tree[] = $comment;
+            }
+
+            return $tree;
+        };
+
+        return $build(null);
     }
 
     public function store(StoreMessageWallPostRequest $request): JsonResponse

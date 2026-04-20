@@ -40,7 +40,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('feed', 'feed')->name('feed');
     Route::inertia('feed/create', 'feed/create')->name('feed.create');
     Route::get('feed/comments/{messageWallPost}', [MessageWallController::class, 'show'])->name('feed.comments.show');
-    Route::inertia('notifications', 'notifications')->name('notifications');
+    Route::inertia('notifications', 'notifications/index')->name('notifications');
 
     // Pet Profile Routes
     Route::prefix('pets')->name('pets.')->group(function () {
