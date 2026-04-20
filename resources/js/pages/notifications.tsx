@@ -13,7 +13,7 @@ export default function Notifications() {
 
     const fetchNotifications = useCallback(async () => {
         try {
-            const response = await fetch(notificationsRoutes.index.get().url());
+            const response = await fetch(notificationsRoutes.index.get().url);
             const data = await response.json();
             setNotificationList(data.notifications);
             setUnreadCount(data.unread_count);
@@ -54,7 +54,7 @@ export default function Notifications() {
 
     const markAsRead = async (notificationId: string) => {
         try {
-            await fetch(notificationsRoutes.read.post(notificationId).url(), {
+            await fetch(notificationsRoutes.read.post(notificationId).url, {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
