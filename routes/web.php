@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\Debug\RealtimeNotificationsDebugController;
 use App\Http\Controllers\MatchingController;
+use App\Http\Controllers\MatchingPreferenceController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\MessageWallController;
 use App\Http\Controllers\MessageWallInteractionController;
@@ -12,6 +13,7 @@ use App\Http\Controllers\NotificationsController;
 use App\Http\Controllers\PetProfileController;
 use App\Http\Controllers\ProfileCompletionController;
 use App\Http\Controllers\SubscriptionController;
+use App\Http\Middleware\EnsureMatchingPreferencesSet;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -36,7 +38,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::inertia('discover', 'discover')->name('discover');
+    Route::middleware([EnsureMatchingPreferencesSet::class])->group(function () {
+        Route::inertia('discover', 'discover')->name('discover');
+    });
+
+    Route::get('matching/preferences', [MatchingPreferenceController::class, 'index'])
+        ->name('matching.preferences');
+    Route::post('matching/preferences', [MatchingPreferenceController::class, 'store'])
+        ->name('matching.preferences.store');
+
     Route::inertia('feed', 'feed')->name('feed');
     Route::inertia('feed/create', 'feed/create')->name('feed.create');
     Route::get('feed/comments/{messageWallPost}', [MessageWallController::class, 'show'])->name('feed.comments.show');

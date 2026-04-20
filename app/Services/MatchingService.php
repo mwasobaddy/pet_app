@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\MatchingPreference;
 use App\Models\PetInteraction;
 use App\Models\PetMatch;
 use App\Models\PetPersonalityTag;
@@ -26,6 +27,9 @@ class MatchingService
         ?string $gender = null,
         ?string $breed = null,
         ?array $personalityTags = null,
+        ?int $distanceMin = null,
+        ?int $distanceMax = null,
+        ?MatchingPreference $preferences = null,
     ): Collection {
         $userPets = $user->petProfiles()->pluck('id')->toArray();
         $interactedPets = $this->getInteractedPets($user);
@@ -33,18 +37,18 @@ class MatchingService
 
         $query = $this->buildRecommendationQuery($userPets, $interactedPets);
 
-        // Apply pet type filter if specified
         if ($petType) {
             $query->where('pet_type_id', $petType);
+        } elseif ($preferences?->preferredPetTypes()->exists()) {
+            $query->whereIn('pet_type_id', $preferences->preferredPetTypes->pluck('id')->toArray());
         }
 
-        // Apply advanced filters only if tier allows
         if ($advancedFiltersAllowed) {
             $this->applyAdvancedFilters(
                 $query,
-                $ageMin,
-                $ageMax,
-                $gender,
+                $ageMin ?? $preferences?->pet_age_min,
+                $ageMax ?? $preferences?->pet_age_max,
+                $gender ?? $preferences?->pet_gender,
                 $breed,
                 $personalityTags
             );
@@ -63,13 +67,29 @@ class MatchingService
     }
 
     /**
-     * Get filter options (pet types and personality tags).
+     * Get filter options for search and preference setup.
      */
-    public function getFilterOptions(): array
+    public function getPreferenceOptions(User $user): array
     {
+        $tier = $user->currentTier();
+
         return [
             'pet_types' => PetType::query()->get(['id', 'name', 'icon']),
             'personality_tags' => PetPersonalityTag::query()->get(['id', 'name']),
+            'pet_gender_options' => ['Male', 'Female', 'Unknown'],
+            'pet_age_presets' => [
+                ['label' => '0-1', 'min' => 0, 'max' => 1],
+                ['label' => '2-4', 'min' => 2, 'max' => 4],
+                ['label' => '5-8', 'min' => 5, 'max' => 8],
+                ['label' => '9-12', 'min' => 9, 'max' => 12],
+                ['label' => '13-20', 'min' => 13, 'max' => 20],
+                ['label' => '21+', 'min' => 21, 'max' => 100],
+            ],
+            'distance_limits' => [
+                'min' => 1,
+                'max' => $tier?->slug !== 'free' ? 500 : 100,
+            ],
+            'advanced_filters_allowed' => $tier?->slug !== 'free',
         ];
     }
 
