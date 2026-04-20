@@ -1,14 +1,28 @@
 import { Head, usePage } from '@inertiajs/react';
 import { Heart, MessageCircle, PawPrint, User } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import feedComments from '@/routes/feed/comments';
+import notificationsRoutes from '@/routes/notifications';
 import type { Notification } from '@/types';
-import notifications from '@/routes/notifications';
 
 export default function Notifications() {
     const { auth } = usePage().props;
-    const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [notificationList, setNotificationList] = useState<Notification[]>([]);
     const [loading, setLoading] = useState(true);
     const [unreadCount, setUnreadCount] = useState(0);
+
+    const fetchNotifications = useCallback(async () => {
+        try {
+            const response = await fetch(notificationsRoutes.index.get().url());
+            const data = await response.json();
+            setNotificationList(data.notifications);
+            setUnreadCount(data.unread_count);
+        } catch (error) {
+            console.error('Failed to fetch notifications:', error);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
 
     useEffect(() => {
         fetchNotifications();
@@ -26,7 +40,7 @@ export default function Notifications() {
                         created_at: new Date().toISOString(),
                         data: notification,
                     };
-                    setNotifications((prev) => [newNotification, ...prev]);
+                    setNotificationList((prev) => [newNotification, ...prev]);
                     setUnreadCount((prev) => prev + 1);
                 });
         }
@@ -36,30 +50,17 @@ export default function Notifications() {
                 window.Echo.leave(`users.${userId}`);
             }
         };
-    }, [auth?.user?.id]);
-
-    const fetchNotifications = async () => {
-        try {
-            const response = await fetch(notifications.index.url());
-            const data = await response.json();
-            setNotifications(data.notifications);
-            setUnreadCount(data.unread_count);
-        } catch (error) {
-            console.error('Failed to fetch notifications:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    }, [auth?.user?.id, fetchNotifications]);
 
     const markAsRead = async (notificationId: string) => {
         try {
-            await fetch(notifications.read.url(notificationId), {
+            await fetch(notificationsRoutes.read.post(notificationId).url(), {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
                 },
             });
-            setNotifications((prev) =>
+            setNotificationList((prev) =>
                 prev.map((n) =>
                     n.id === notificationId
                         ? { ...n, read_at: new Date().toISOString() }
@@ -96,7 +97,7 @@ export default function Notifications() {
 
         // Navigate to the post detail page (like Facebook)
         if (data.post_id) {
-            window.location.href = `/feed/comments/${data.post_id}`;
+            window.location.href = feedComments.show.url(data.post_id);
         }
     };
 
@@ -147,7 +148,7 @@ return `${Math.floor(seconds / 86400)}d ago`;
                         <div className="flex items-center justify-center py-12">
                             <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-red-500" />
                         </div>
-                    ) : notifications.length === 0 ? (
+                    ) : notificationList.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-12 text-center">
                             <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
                                 <Heart className="h-8 w-8 text-gray-400" />
@@ -161,7 +162,7 @@ return `${Math.floor(seconds / 86400)}d ago`;
                         </div>
                     ) : (
                         <div className="space-y-2">
-                            {notifications.map((notification) => (
+                            {notificationList.map((notification) => (
                                 <div
                                     key={notification.id}
                                     onClick={() => handleNotificationClick(notification)}
