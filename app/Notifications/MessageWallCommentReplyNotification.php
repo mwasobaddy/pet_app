@@ -49,6 +49,7 @@ class MessageWallCommentReplyNotification extends Notification
             'post_id' => $this->postId,
             'comment_id' => $this->commentId,
             'replier_name' => $this->replierName,
+            'message' => "{$this->replierName} replied to your comment",
         ];
     }
 }
