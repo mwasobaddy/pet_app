@@ -31,10 +31,15 @@ export default function PostCard({
     onSetActiveReply,
     formatTime,
 }: PostCardProps) {
+    void replyDrafts;
+    void activeReplyCommentId;
+    void onUpdateReplyDraft;
+    void onSetActiveReply;
+
     const [showComments, setShowComments] = useState(false);
     const [showAllComments, setShowAllComments] = useState(false);
 
-    const visibleComments = showAllComments ? post.comments : post.comments.slice(0, 2);
+    const visibleComments = showAllComments ? post.comments ?? [] : (post.comments ?? []).slice(0, 2);
 
     return (
         <article className="border-b border-gray-200 bg-white pb-4 dark:border-gray-800 dark:bg-gray-900 md:rounded-xl md:border">
@@ -170,15 +175,15 @@ export default function PostCard({
                     ) : (
                         <>
                             <div className="space-y-2">
-                                {visibleComments.map((comment) => (
-                                    <div key={comment.id} className="flex gap-2">
+                                {visibleComments.filter(Boolean).map((comment, index) => (
+                                    <div key={comment?.id ?? index} className="flex gap-2">
                                         <p className="text-sm text-gray-700 dark:text-gray-300">
                                             <span className="font-semibold text-gray-900 dark:text-white">
-                                                {comment.user_name || 'Pet Owner'}
+                                                {comment?.user_name || 'Pet Owner'}
                                             </span>{' '}
-                                            {comment.body}
+                                            {comment?.body}
                                         </p>
-                                        <span className="text-xs text-gray-400">{formatTime(comment.created_at)}</span>
+                                        <span className="text-xs text-gray-400">{formatTime(comment?.created_at ?? null)}</span>
                                     </div>
                                 ))}
                             </div>

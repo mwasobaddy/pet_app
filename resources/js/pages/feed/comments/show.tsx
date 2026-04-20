@@ -21,8 +21,10 @@ export default function Show({ post: initialPost }: ShowProps) {
     const [activeReplyCommentId, setActiveReplyCommentId] = useState<number | null>(null);
 
     const appendCommentToPost = useCallback((post: FeedPost, incomingComment: FeedComment, nextCommentsCount: number): FeedPost => {
+        const comments = post.comments ?? [];
+
         if (incomingComment.parent_comment_id === null) {
-            const exists = post.comments.some((comment) => comment.id === incomingComment.id);
+            const exists = comments.some((comment) => comment?.id === incomingComment.id);
 
             if (exists) {
                 return {
@@ -34,19 +36,20 @@ export default function Show({ post: initialPost }: ShowProps) {
             return {
                 ...post,
                 comments_count: nextCommentsCount,
-                comments: [...post.comments, incomingComment],
+                comments: [...comments, { ...incomingComment, replies: incomingComment.replies ?? [] }],
             };
         }
 
         return {
             ...post,
             comments_count: nextCommentsCount,
-            comments: post.comments.map((comment) => {
-                if (comment.id !== incomingComment.parent_comment_id) {
+            comments: comments.map((comment) => {
+                if (!comment || comment.id !== incomingComment.parent_comment_id) {
                     return comment;
                 }
 
-                const replyExists = comment.replies.some((reply) => reply.id === incomingComment.id);
+                const replies = comment.replies ?? [];
+                const replyExists = replies.some((reply) => reply?.id === incomingComment.id);
 
                 if (replyExists) {
                     return comment;
@@ -54,7 +57,7 @@ export default function Show({ post: initialPost }: ShowProps) {
 
                 return {
                     ...comment,
-                    replies: [...comment.replies, incomingComment],
+                    replies: [...replies, incomingComment],
                 };
             }),
         };
