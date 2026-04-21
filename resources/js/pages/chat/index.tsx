@@ -148,60 +148,84 @@ export default function ChatIndex({
             <Head title="Chat" />
 
             <div className="min-h-screen w-full bg-gradient-to-b from-orange-50/50 via-white to-pink-50/30 dark:from-gray-950 dark:via-gray-950 dark:to-gray-900">
-                <div className="max-w-4xl mx-auto p-6 md:p-12">
-                    {/* Header */}
-                    <div className="text-center mb-8">
-                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-400 to-rose-500 shadow-xl mb-4">
-                            <span className="text-3xl">💬</span>
+                <div className="mx-auto flex min-h-screen max-w-4xl flex-col">
+                    <header className="sticky top-0 z-20 border-b border-gray-200 bg-white/90 backdrop-blur dark:border-gray-800 dark:bg-gray-950/90">
+                        <div className="px-6 py-6 md:px-12">
+                            <div className="text-center mb-2">
+                                <p className="text-gray-500 dark:text-gray-400">
+                                    Keep the conversation going with your matches.
+                                </p>
+                            </div>
                         </div>
-                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                            Your Conversations
-                        </h1>
-                        <p className="text-gray-500 dark:text-gray-400">
-                            Keep the conversation going with your matches.
-                        </p>
-                    </div>
+                    </header>
 
-                    {conversations.length === 0 ? (
-                        <div className="rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm p-12 text-center shadow-sm">
-                            <div className="text-5xl mb-4">🐾</div>
-                            <h3 className="font-bold text-xl text-gray-900 dark:text-white">No conversations yet</h3>
-                            <p className="text-gray-500 dark:text-gray-400 mt-2">
-                                Start chatting once you match with another pet owner.
-                            </p>
+                    <main className="flex-1 overflow-y-auto p-6 md:p-12 pb-24 md:pb-12">
+                        {conversations.length === 0 ? (
+                            <div className="rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm p-12 text-center shadow-sm">
+                                <div className="text-5xl mb-4">🐾</div>
+                                <h3 className="font-bold text-xl text-gray-900 dark:text-white">No conversations yet</h3>
+                                <p className="text-gray-500 dark:text-gray-400 mt-2">
+                                    Start chatting once you match with another pet owner.
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                {conversations.map((conversation) => (
+                                    <Link
+                                        key={conversation.id}
+                                        href={`/chat/${conversation.id}`}
+                                        className="group flex items-center justify-between gap-4 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-5 py-4 transition-all duration-200 hover:shadow-lg hover:scale-[1.01] hover:border-orange-300 dark:hover:border-orange-500"
+                                    >
+                                        <div className="space-y-1 min-w-0 flex-1">
+                                            <p className="font-bold text-gray-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+                                                {conversation.other_user?.name ?? 'Pet Owner'}
+                                            </p>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                                                {conversation.latest_message?.body ?? (conversation.latest_message?.media_type ? '📎 Media message' : 'Say hello! 👋')}
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center gap-3 flex-shrink-0">
+                                            {conversation.unread_count > 0 && (
+                                                <span className="rounded-full bg-gradient-to-r from-orange-500 to-rose-500 px-3 py-1 text-xs font-bold text-white shadow-md">
+                                                    {conversation.unread_count}
+                                                </span>
+                                            )}
+                                            {conversation.last_message_at && (
+                                                <span className="text-xs text-gray-400 dark:text-gray-500">
+                                                    {new Date(conversation.last_message_at).toLocaleDateString()}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </Link>
+                                ))}
+                            </div>
+                        )}
+                        <div ref={observerRef} className="h-1" />
+                    </main>
+
+                    <nav className="fixed bottom-0 left-0 right-0 z-20 border-t border-gray-200 bg-white dark:border-gray-800 dark:bg-black md:hidden">
+                        <div className="flex items-center justify-around py-2">
+                            <a href="/feed" className="flex flex-col items-center gap-1 p-2 text-gray-900 dark:text-white">
+                                <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                                </svg>
+                                <span className="text-[10px]">Home</span>
+                            </a>
+                            <a href="/feed/create" className="flex flex-col items-center gap-1 p-2 text-gray-500 dark:text-gray-400">
+                                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                </svg>
+                                <span className="text-[10px]">Create</span>
+                            </a>
+                            <a href="/profile" className="flex flex-col items-center gap-1 p-2 text-gray-500 dark:text-gray-400">
+                                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                                <span className="text-[10px]">Profile</span>
+                            </a>
                         </div>
-                    ) : (
-                        <div className="space-y-3">
-                            {conversations.map((conversation) => (
-                                <Link
-                                    key={conversation.id}
-                                    href={`/chat/${conversation.id}`}
-                                    className="group flex items-center justify-between gap-4 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-5 py-4 transition-all duration-200 hover:shadow-lg hover:scale-[1.01] hover:border-orange-300 dark:hover:border-orange-500"
-                                >
-                                    <div className="space-y-1 min-w-0 flex-1">
-                                        <p className="font-bold text-gray-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
-                                            {conversation.other_user?.name ?? 'Pet Owner'}
-                                        </p>
-                                        <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                                            {conversation.latest_message?.body ?? (conversation.latest_message?.media_type ? '📎 Media message' : 'Say hello! 👋')}
-                                        </p>
-                                    </div>
-                                    <div className="flex items-center gap-3 flex-shrink-0">
-                                        {conversation.unread_count > 0 && (
-                                            <span className="rounded-full bg-gradient-to-r from-orange-500 to-rose-500 px-3 py-1 text-xs font-bold text-white shadow-md">
-                                                {conversation.unread_count}
-                                            </span>
-                                        )}
-                                        {conversation.last_message_at && (
-                                            <span className="text-xs text-gray-400 dark:text-gray-500">
-                                                {new Date(conversation.last_message_at).toLocaleDateString()}
-                                            </span>
-                                        )}
-                                    </div>
-                                </Link>
-                            ))}
-                        </div>
-                    )}
+                    </nav>
+                    <div className="h-20 md:hidden" />
                 </div>
             </div>
         </>
