@@ -13,6 +13,7 @@ export default function AppSidebarLayout({
     const { url } = usePage();
     const currentPath = url.split('?')[0];
     const isDiscoverRoute = currentPath === '/discover';
+    const isChatDetailRoute = currentPath.startsWith('/chat/') && currentPath !== '/chat';
 
     return (
         <AppShell variant="sidebar">
@@ -20,13 +21,13 @@ export default function AppSidebarLayout({
             <AppContent
                 variant="sidebar"
                 className={`overflow-x-visible md:overflow-x-hidden ${
-                    isDiscoverRoute ? 'pb-0 overflow-hidden' : 'pb-20 md:pb-0'
+                    isDiscoverRoute || isChatDetailRoute ? 'pb-0 overflow-hidden' : 'pb-20 md:pb-0'
                 }`}
             >
                 <AppSidebarHeader breadcrumbs={breadcrumbs} />
                 {children}
             </AppContent>
-            <MobileNav />
+            {!isChatDetailRoute && <MobileNav />}
         </AppShell>
     );
 }
