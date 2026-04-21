@@ -325,7 +325,7 @@ export default function Show() {
         <>
             <Head title="Message Wall" />
 
-            <div className="min-h-screen bg-gray-50 py-4 dark:bg-black md:py-8">
+            <div className="min-h-screen bg-gray-50 dark:bg-black">
                 {/* Desktop Header */}
                 <header className="sticky top-0 z-20 border-b border-gray-200 bg-white/95 backdrop-blur dark:border-gray-800 dark:bg-black/95">
                     <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">

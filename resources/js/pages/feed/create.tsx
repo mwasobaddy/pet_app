@@ -58,7 +58,7 @@ export default function Create() {
         <>
             <Head title="Create Post" />
 
-            <div className="min-h-screen bg-gray-50 py-4 dark:bg-black md:py-8">
+            <div className="min-h-screen bg-gray-50 dark:bg-black">
                 <main className="mx-auto max-w-2xl px-4">
                     <div className="mb-6">
                         <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
