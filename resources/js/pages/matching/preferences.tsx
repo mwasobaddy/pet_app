@@ -1,11 +1,10 @@
 import { Form, Head } from '@inertiajs/react';
 import { useState } from 'react';
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import InputError from '@/components/input-error';
 
 interface PetType {
     id: number;
@@ -57,15 +56,22 @@ export default function MatchingPreferences({
 
             <div className="min-h-screen w-full bg-gradient-to-b from-slate-50 via-white to-cyan-50 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900">
                 <div className="max-w-3xl mx-auto p-6 md:p-12">
-                    <div className="text-center mb-8">
-                        <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-3">Set your matching preferences</h1>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">
+                    <div className="mb-10">
+                        <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-3">Matching Preferences</h1>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 max-w-2xl">
                             Save your preferences so Discover can connect you with the best pet matches.
                         </p>
                     </div>
 
-                    <Card className="overflow-hidden shadow-xl border border-slate-200 dark:border-slate-800">
-                        <CardContent className="space-y-6 p-6 md:p-8">
+                    <div className="overflow-hidden rounded-[2rem] bg-white dark:bg-gray-950 shadow-xl border border-slate-200 dark:border-gray-800">
+                        <div className="space-y-6 p-6 md:p-8">
+                            <div className="rounded-[1.75rem] bg-gray-50 dark:bg-gray-900 p-6">
+                                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Personal Informations</h2>
+                                <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+                                    Configure the pet types and filters that matter most to you.
+                                </p>
+                            </div>
+
                             <Form action="/matching/preferences" method="post" className="space-y-6">
                                 {({ processing, errors }) => (
                                     <>
@@ -83,7 +89,7 @@ export default function MatchingPreferences({
                                                         max={options.distance_limits.max}
                                                         value={distanceMin}
                                                         onChange={(event) => setDistanceMin(Number(event.target.value))}
-                                                        className="h-12"
+                                                        className="h-16 rounded-2xl border-none bg-gray-50/50 dark:bg-gray-900/50 px-6 text-gray-900 dark:text-white focus-visible:ring-1 focus-visible:ring-gray-200 dark:focus-visible:ring-gray-800"
                                                     />
                                                     <InputError message={errors.distance_min} />
                                                 </div>
@@ -96,7 +102,7 @@ export default function MatchingPreferences({
                                                         max={options.distance_limits.max}
                                                         value={distanceMax}
                                                         onChange={(event) => setDistanceMax(Number(event.target.value))}
-                                                        className="h-12"
+                                                        className="h-16 rounded-2xl border-none bg-gray-50/50 dark:bg-gray-900/50 px-6 text-gray-900 dark:text-white focus-visible:ring-1 focus-visible:ring-gray-200 dark:focus-visible:ring-gray-800"
                                                     />
                                                     <InputError message={errors.distance_max} />
                                                 </div>
@@ -104,20 +110,36 @@ export default function MatchingPreferences({
                                         </div>
 
                                         <div className="grid gap-2">
-                                            <Label className="text-sm font-semibold text-slate-700 dark:text-slate-200">Pet types</Label>
+                                            <div className="flex items-center justify-between gap-4">
+                                                <Label className="text-sm font-semibold text-slate-700 dark:text-slate-200">Pet types</Label>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const allSelected = selectedPetTypeIds.length === options.pet_types.length;
+                                                        setSelectedPetTypeIds(allSelected ? [] : options.pet_types.map((type) => type.id));
+                                                    }}
+                                                    className="text-sm font-semibold text-orange-600 dark:text-orange-300 hover:text-orange-500 transition-colors"
+                                                >
+                                                    {selectedPetTypeIds.length === options.pet_types.length ? 'Deselect all' : 'Select all'}
+                                                </button>
+                                            </div>
                                             <div className="grid gap-2 sm:grid-cols-2">
                                                 {options.pet_types.map((type) => (
                                                     <label
                                                         key={type.id}
-                                                        className="flex items-center gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-4 cursor-pointer"
+                                                        className={`flex items-center gap-3 rounded-2xl border p-4 cursor-pointer transition-all ${
+                                                            selectedPetTypeIds.includes(type.id)
+                                                                ? 'border-orange-500 bg-orange-50 text-orange-900 dark:border-orange-500 dark:bg-orange-950/30 dark:text-orange-200'
+                                                                : 'border-slate-200 bg-gray-50 text-slate-900 dark:border-slate-700 dark:bg-gray-900 dark:text-slate-100'
+                                                        }`}
                                                     >
                                                         <Checkbox
                                                             name="pet_type_ids[]"
                                                             value={type.id}
                                                             checked={selectedPetTypeIds.includes(type.id)}
-                                                            onChange={() => togglePetType(type.id)}
+                                                            onCheckedChange={() => togglePetType(type.id)}
                                                         />
-                                                        <span className="text-sm text-slate-900 dark:text-slate-100">
+                                                        <span className="text-sm font-medium">
                                                             {type.icon ? `${type.icon} ` : ''}{type.name}
                                                         </span>
                                                     </label>
@@ -137,7 +159,7 @@ export default function MatchingPreferences({
                                                         name="pet_gender"
                                                         value={petGender}
                                                         onChange={(event) => setPetGender(event.target.value)}
-                                                        className="h-12 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400/40"
+                                                        className="h-16 rounded-2xl border-none bg-gray-50/50 dark:bg-gray-900/50 px-6 text-gray-900 dark:text-white focus:ring-1 focus:ring-gray-200 dark:focus:ring-gray-800"
                                                     >
                                                         {options.pet_gender_options.map((genderOption) => (
                                                             <option key={genderOption} value={genderOption}>
@@ -158,7 +180,7 @@ export default function MatchingPreferences({
                                                             name="pet_age_min"
                                                             value={petAgeMin ?? ''}
                                                             onChange={(event) => setPetAgeMin(event.target.value ? Number(event.target.value) : '')}
-                                                            className="h-12 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400/40"
+                                                            className="h-16 rounded-2xl border-none bg-gray-50/50 dark:bg-gray-900/50 px-6 text-gray-900 dark:text-white focus:ring-1 focus:ring-gray-200 dark:focus:ring-gray-800"
                                                         >
                                                             <option value="">Min age</option>
                                                             {options.pet_age_presets.map((preset) => (
@@ -172,7 +194,7 @@ export default function MatchingPreferences({
                                                             name="pet_age_max"
                                                             value={petAgeMax ?? ''}
                                                             onChange={(event) => setPetAgeMax(event.target.value ? Number(event.target.value) : '')}
-                                                            className="h-12 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400/40"
+                                                            className="h-16 rounded-2xl border-none bg-gray-50/50 dark:bg-gray-900/50 px-6 text-gray-900 dark:text-white focus:ring-1 focus:ring-gray-200 dark:focus:ring-gray-800"
                                                         >
                                                             <option value="">Max age</option>
                                                             {options.pet_age_presets.map((preset) => (
@@ -196,14 +218,18 @@ export default function MatchingPreferences({
                                         <input type="hidden" name="pet_age_min" value={petAgeMin ?? ''} />
                                         <input type="hidden" name="pet_age_max" value={petAgeMax ?? ''} />
 
-                                        <Button type="submit" className="w-full" disabled={processing}>
+                                        <Button
+                                            type="submit"
+                                            disabled={processing}
+                                            className="w-full h-16 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white text-lg font-bold shadow-xl shadow-orange-500/20 transition-all active:scale-[0.98]"
+                                        >
                                             {processing ? 'Saving preferences...' : 'Save preferences'}
                                         </Button>
                                     </>
                                 )}
                             </Form>
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </div>
                 </div>
             </div>
         </>
