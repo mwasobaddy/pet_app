@@ -216,7 +216,7 @@ return `${Math.floor(seconds / 86400)}d ago`;
         <>
             <Head title="Notifications" />
 
-            <div className="min-h-screen bg-gray-50 py-4 dark:bg-black md:py-8">
+            <div className="min-h-screen bg-gray-50 dark:bg-black">
                 <div className="mx-auto max-w-2xl px-4">
                     <div className="mb-6 flex items-center justify-between">
                         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
