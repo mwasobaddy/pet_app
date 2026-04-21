@@ -57,7 +57,7 @@ class MatchingController extends Controller
             preferences: $user->matchingPreference,
         );
 
-        $filterOptions = $this->matchingService->getFilterOptions();
+        $filterOptions = $this->matchingService->getPreferenceOptions($user);
         $tier = $user->currentTier();
         $advancedAllowed = $tier?->slug !== 'free';
 
