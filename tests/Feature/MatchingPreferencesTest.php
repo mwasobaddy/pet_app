@@ -68,6 +68,7 @@ test('users can view matching preferences page', function () {
     $response->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('matching/preferences')
+            ->where('sidebarOpen', false)
             ->has('options.pet_types')
             ->where('preference', null)
         );
