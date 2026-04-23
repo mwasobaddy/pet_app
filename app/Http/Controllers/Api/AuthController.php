@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Models\User;
+use App\Services\AuthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
 
 class AuthController
 {
+    public function __construct(private AuthService $authService) {}
+
     /**
      * Login user and return API token.
      */
@@ -21,25 +21,12 @@ class AuthController
             'device_name' => 'required|string',
         ]);
 
-        $user = User::where('email', $credentials['email'])->first();
+        $user = $this->authService->validateCredentials(
+            $credentials['email'],
+            $credentials['password'],
+        );
 
-        if (! $user || ! Hash::check($credentials['password'], $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.'],
-            ]);
-        }
-
-        // Check if email is verified
-        if (! $user->email_verified_at) {
-            throw ValidationException::withMessages([
-                'email' => ['Please verify your email address before logging in.'],
-            ]);
-        }
-
-        // Revoke previous tokens if needed (optional)
-        // $user->tokens()->delete();
-
-        $token = $user->createToken($credentials['device_name'])->plainTextToken;
+        $token = $this->authService->createToken($user, $credentials['device_name']);
 
         return response()->json([
             'user' => $user,
@@ -60,16 +47,8 @@ class AuthController
             'device_name' => 'required|string',
         ]);
 
-        $user = User::create([
-            'first_name' => $validated['first_name'],
-            'other_names' => $validated['other_names'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-            'email_verified_at' => now(), // Auto-verify for now, change as needed
-            'password_set_at' => now(),
-        ]);
-
-        $token = $user->createToken($validated['device_name'])->plainTextToken;
+        $user = $this->authService->registerUser($validated);
+        $token = $this->authService->createToken($user, $validated['device_name']);
 
         return response()->json([
             'user' => $user,
@@ -82,7 +61,7 @@ class AuthController
      */
     public function logout(Request $request): JsonResponse
     {
-        $request->user('sanctum')->currentAccessToken()->delete();
+        $this->authService->revokeToken($request->user('sanctum'));
 
         return response()->json([
             'message' => 'Logged out successfully.',
@@ -102,7 +81,7 @@ class AuthController
      */
     public function revokeAllTokens(Request $request): JsonResponse
     {
-        $request->user('sanctum')->tokens()->delete();
+        $this->authService->revokeAllTokens($request->user('sanctum'));
 
         return response()->json([
             'message' => 'All tokens revoked successfully.',

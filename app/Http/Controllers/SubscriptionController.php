@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Subscription;
 use App\Models\Tier;
-use App\Models\User;
-use App\Services\PaymentService;
+use App\Services\SubscriptionService;
+use App\Traits\CompletesUserProfile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -13,9 +12,9 @@ use Inertia\Response;
 
 class SubscriptionController extends Controller
 {
-    public function __construct(
-        private PaymentService $paymentService
-    ) {}
+    use CompletesUserProfile;
+
+    public function __construct(private SubscriptionService $subscriptionService) {}
 
     /**
      * Show the subscription/tier selection page.
@@ -54,26 +53,19 @@ class SubscriptionController extends Controller
     {
         $user = auth()->user();
 
-        // Verify tier is active
         if (! $tier->is_active) {
             return back()->withErrors(['error' => 'This tier is no longer available.']);
         }
 
-        // If free tier, complete subscription immediately
+        $paymentMethod = $tier->slug === 'free' ? 'none' : $request->string('payment_method', 'card')->toString();
+        $cycle = $request->string('cycle', 'monthly')->toString();
+
+        $this->subscriptionService->processSubscription($user, $tier, $paymentMethod, $cycle);
+
         if ($tier->slug === 'free') {
-            $this->paymentService->initiatePayment(
-                $user,
-                $tier,
-                'none',
-                'monthly'
-            );
-
-            $this->assignRoleAndRedirect($user, $tier);
-
-            return $this->redirectToNextStep($user);
+            return $this->subscriptionService->getNextStepRedirect($user);
         }
 
-        // For paid tiers, redirect to payment selection
         return redirect()->route('subscription.payment', $tier);
     }
 
@@ -84,54 +76,10 @@ class SubscriptionController extends Controller
     {
         $user = auth()->user();
 
-        // Verify tier is active
         if (! $tier->is_active) {
             return back()->withErrors(['error' => 'This tier is no longer available.']);
         }
 
-        $this->assignRoleAndRedirect($user, $tier);
-
-        return $this->redirectToNextStep($user);
-    }
-
-    /**
-     * Assign role to user and update subscription.
-     */
-    private function assignRoleAndRedirect(
-        User $user,
-        Tier $tier
-    ): void {
-        // Assign the role associated with the tier
-        if ($tier->role_name) {
-            $user->syncRoles($tier->role_name);
-        }
-    }
-
-    /**
-     * Redirect to next step after subscription.
-     */
-    private function redirectToNextStep(User $user): RedirectResponse
-    {
-        if ($this->requiresProfileCompletion($user)) {
-            return redirect()->route('profile.incomplete');
-        }
-
-        if ($user->petProfiles()->doesntExist()) {
-            return redirect()->route('pets.create');
-        }
-
-        return redirect()->intended(route('discover'));
-    }
-
-    private function requiresProfileCompletion(User $user): bool
-    {
-        if (blank($user->google_id)) {
-            return false;
-        }
-
-        return blank($user->first_name)
-            || blank($user->other_names)
-            || blank($user->mobile_number)
-            || $user->password_set_at === null;
+        return $this->subscriptionService->getNextStepRedirect($user);
     }
 }
