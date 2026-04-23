@@ -11,6 +11,7 @@ use App\Models\MessageWallPost;
 use App\Models\MessageWallSave;
 use App\Models\MessageWallTag;
 use App\Models\PetType;
+use App\Services\MessageWallFormatterService;
 use App\Services\MessageWallService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -22,6 +23,7 @@ class MessageWallController extends Controller
 {
     public function __construct(
         private MessageWallService $messageWallService,
+        private MessageWallFormatterService $formatterService,
     ) {}
 
     public function index(MessageWallIndexRequest $request): JsonResponse
@@ -42,53 +44,7 @@ class MessageWallController extends Controller
             ->pluck('message_wall_post_id');
 
         $posts = $postItems->map(function (MessageWallPost $post) use ($likedPostIds, $savedPostIds) {
-            $userHasLiked = $likedPostIds->contains($post->id);
-            $userHasSaved = $savedPostIds->contains($post->id);
-
-            return [
-                'id' => $post->id,
-                'user_id' => $post->user_id,
-                'pet_name' => $post->petProfile?->name,
-                'user_name' => $post->user?->name,
-                'timestamp' => $post->created_at?->toIso8601String(),
-                'location' => $post->location,
-                'content' => $post->body,
-                'hashtags' => $post->tags->pluck('name')->values(),
-                'media' => $post->media_path ? [
-                    'type' => $post->media_type,
-                    'url' => asset('storage/'.$post->media_path),
-                ] : null,
-                'likes_count' => $post->likes_count,
-                'comments_count' => $post->comments_count,
-                'shares_count' => $post->shares_count,
-                'user_has_liked' => $userHasLiked,
-                'user_has_saved' => $userHasSaved,
-                'comments' => $post->comments
-                    ->map(function ($comment) {
-                        return [
-                            'id' => $comment->id,
-                            'user_id' => $comment->user_id,
-                            'user_name' => $comment->user?->name,
-                            'body' => $comment->body,
-                            'parent_comment_id' => $comment->parent_comment_id,
-                            'created_at' => $comment->created_at?->toIso8601String(),
-                            'replies' => $comment->replies
-                                ->map(function ($reply) {
-                                    return [
-                                        'id' => $reply->id,
-                                        'user_id' => $reply->user_id,
-                                        'user_name' => $reply->user?->name,
-                                        'body' => $reply->body,
-                                        'parent_comment_id' => $reply->parent_comment_id,
-                                        'created_at' => $reply->created_at?->toIso8601String(),
-                                        'replies' => [],
-                                    ];
-                                })
-                                ->values(),
-                        ];
-                    })
-                    ->values(),
-            ];
+            return $this->formatPostForFeed($post, $likedPostIds, $savedPostIds);
         });
 
         return response()->json([
@@ -124,105 +80,15 @@ class MessageWallController extends Controller
             ->where('message_wall_post_id', $messageWallPost->id)
             ->orderBy('created_at')
             ->get()
-            ->map(function (MessageWallComment $comment) {
-                return [
-                    'id' => $comment->id,
-                    'user_id' => $comment->user_id,
-                    'user_name' => $comment->user?->name,
-                    'body' => $comment->body,
-                    'parent_comment_id' => $comment->parent_comment_id,
-                    'created_at' => $comment->created_at?->toIso8601String(),
-                    'replies' => [],
-                ];
-            })
+            ->map(fn (MessageWallComment $comment) => $this->formatterService->formatComment($comment))
             ->all();
 
-        $commentTree = $this->buildCommentTree($comments);
-        $post = $this->formatPost($messageWallPost, $request->user()->id, $commentTree);
+        $commentTree = $this->formatterService->buildCommentTree($comments);
+        $post = $this->formatterService->formatPost($messageWallPost, $request->user()->id, $commentTree);
 
         return Inertia::render('feed/comments/show', [
             'post' => $post,
         ]);
-    }
-
-    private function formatPost(MessageWallPost $post, int $currentUserId, ?array $comments = null): array
-    {
-        $userHasLiked = MessageWallLike::query()
-            ->where('user_id', $currentUserId)
-            ->where('message_wall_post_id', $post->id)
-            ->exists();
-
-        $userHasSaved = MessageWallSave::query()
-            ->where('user_id', $currentUserId)
-            ->where('message_wall_post_id', $post->id)
-            ->exists();
-
-        return [
-            'id' => $post->id,
-            'user_id' => $post->user_id,
-            'pet_name' => $post->petProfile?->name,
-            'user_name' => $post->user?->name,
-            'timestamp' => $post->created_at?->toIso8601String(),
-            'location' => $post->location,
-            'content' => $post->body,
-            'hashtags' => $post->tags->pluck('name')->values(),
-            'media' => $post->media_path ? [
-                'type' => $post->media_type,
-                'url' => asset('storage/'.$post->media_path),
-            ] : null,
-            'likes_count' => $post->likes_count,
-            'comments_count' => $post->comments_count,
-            'shares_count' => $post->shares_count,
-            'user_has_liked' => $userHasLiked,
-            'user_has_saved' => $userHasSaved,
-            'comments' => $comments ?? $post->comments
-                ->map(function ($comment) {
-                    return [
-                        'id' => $comment->id,
-                        'user_id' => $comment->user_id,
-                        'user_name' => $comment->user?->name,
-                        'body' => $comment->body,
-                        'parent_comment_id' => $comment->parent_comment_id,
-                        'created_at' => $comment->created_at?->toIso8601String(),
-                        'replies' => $comment->replies
-                            ->map(function ($reply) {
-                                return [
-                                    'id' => $reply->id,
-                                    'user_id' => $reply->user_id,
-                                    'user_name' => $reply->user?->name,
-                                    'body' => $reply->body,
-                                    'parent_comment_id' => $reply->parent_comment_id,
-                                    'created_at' => $reply->created_at?->toIso8601String(),
-                                    'replies' => [],
-                                ];
-                            })
-                            ->values(),
-                    ];
-                })
-                ->values(),
-        ];
-    }
-
-    private function buildCommentTree(array $comments): array
-    {
-        $children = [];
-
-        foreach ($comments as $comment) {
-            $children[$comment['parent_comment_id']][] = $comment;
-        }
-
-        $build = function ($parentId) use (&$build, $children): array {
-            $tree = [];
-
-            foreach ($children[$parentId] ?? [] as $comment) {
-                $comment['replies'] = $build($comment['id']);
-                $tree[] = $comment;
-            }
-
-            return $tree;
-        };
-
-        return $build(null);
     }
 
     public function store(StoreMessageWallPostRequest $request): JsonResponse
@@ -246,23 +112,7 @@ class MessageWallController extends Controller
             'media_type' => $mediaType,
         ]);
 
-        $tagNames = collect($validated['tags'] ?? [])
-            ->map(fn (string $tag) => trim(Str::lower($tag)))
-            ->filter()
-            ->unique()
-            ->take(8)
-            ->values();
-
-        if ($tagNames->isNotEmpty()) {
-            $tagIds = $tagNames->map(function (string $tagName) {
-                return MessageWallTag::firstOrCreate(
-                    ['slug' => Str::slug($tagName)],
-                    ['name' => $tagName]
-                )->id;
-            });
-
-            $post->tags()->sync($tagIds->all());
-        }
+        $this->syncTags($post, $validated['tags'] ?? []);
 
         event(new MessageWallPostCreated($post->id));
 
@@ -271,4 +121,65 @@ class MessageWallController extends Controller
             'post_id' => $post->id,
         ], 201);
     }
+
+    /**
+     * Format a post for feed view.
+     *
+     * @return array
+     */
+    private function formatPostForFeed(MessageWallPost $post, $likedPostIds, $savedPostIds): array
+    {
+        $userHasLiked = $likedPostIds->contains($post->id);
+        $userHasSaved = $savedPostIds->contains($post->id);
+
+        return [
+            'id' => $post->id,
+            'user_id' => $post->user_id,
+            'pet_name' => $post->petProfile?->name,
+            'user_name' => $post->user?->name,
+            'timestamp' => $post->created_at?->toIso8601String(),
+            'location' => $post->location,
+            'content' => $post->body,
+            'hashtags' => $post->tags->pluck('name')->values(),
+            'media' => $post->media_path ? [
+                'type' => $post->media_type,
+                'url' => asset('storage/'.$post->media_path),
+            ] : null,
+            'likes_count' => $post->likes_count,
+            'comments_count' => $post->comments_count,
+            'shares_count' => $post->shares_count,
+            'user_has_liked' => $userHasLiked,
+            'user_has_saved' => $userHasSaved,
+            'comments' => $post->comments
+                ->map(fn ($comment) => $this->formatterService->formatComment($comment))
+                ->values(),
+        ];
+    }
+
+    /**
+     * Sync tags for a post.
+     *
+     * @param  array  $tagNames
+     */
+    private function syncTags(MessageWallPost $post, array $tagNames): void
+    {
+        $tags = collect($tagNames)
+            ->map(fn (string $tag) => trim(Str::lower($tag)))
+            ->filter()
+            ->unique()
+            ->take(8)
+            ->values();
+
+        if ($tags->isNotEmpty()) {
+            $tagIds = $tags->map(function (string $tagName) {
+                return MessageWallTag::firstOrCreate(
+                    ['slug' => Str::slug($tagName)],
+                    ['name' => $tagName]
+                )->id;
+            });
+
+            $post->tags()->sync($tagIds->all());
+        }
+    }
 }
+
