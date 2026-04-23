@@ -44,7 +44,7 @@ composer run dev
 
 ```bash
 # Login
-curl -X POST http://localhost:8000/api/auth/login \
+curl -X POST http://127.0.0.1:8000/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "user@example.com",
@@ -59,7 +59,7 @@ curl -X POST http://localhost:8000/api/auth/login \
 # }
 
 # Use token in requests:
-curl -X GET http://localhost:8000/api/user \
+curl -X GET http://127.0.0.1:8000/api/user \
   -H "Authorization: Bearer 1|abc123def456..."
 ```
 
@@ -77,7 +77,7 @@ Choose one:
 ```env
 # Application
 APP_NAME=PawMatch
-APP_URL=http://localhost:8000
+APP_URL=http://127.0.0.1:8000
 APP_ENV=local
 
 # Database

@@ -23,7 +23,7 @@ composer run dev
 ```
 
 This command runs:
-- Laravel dev server on `http://localhost:8000`
+- Laravel dev server on `http://127.0.0.1:8000`
 - Vite dev server on `http://localhost:5173`
 - (Optional) Reverb WebSocket server on `ws://localhost:8080`
 
@@ -182,13 +182,13 @@ BROADCAST_CONNECTION=reverb
 1. Get credentials from [Google Cloud Console](https://console.cloud.google.com/)
 2. Create OAuth 2.0 credential (type: Web application)
 3. Add authorized redirect URIs:
-   - Local: `http://localhost:8000/auth/google/callback`
+   - Local: `http://127.0.0.1:8000/auth/google/callback`
    - Production: `https://yourdomain.com/auth/google/callback`
 4. Set in .env:
    ```env
    GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
    GOOGLE_CLIENT_SECRET=your-client-secret
-   GOOGLE_REDIRECT_URI=http://localhost:8000/auth/google/callback
+   GOOGLE_REDIRECT_URI=http://127.0.0.1:8000/auth/google/callback
    ```
 
 ### Email Notifications
@@ -243,7 +243,7 @@ Ensure:
 ### Google OAuth callback not working
 1. Check redirect URI matches exactly in Google Console
 2. Verify `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are set
-3. Local dev: use `http://localhost:8000` (not HTTPS)
+3. Local dev: use `http://127.0.0.1:8000` (not HTTPS)
 
 ---
 
@@ -252,7 +252,7 @@ Ensure:
 ```env
 # Identity
 APP_NAME=PawMatch
-APP_URL=http://localhost:8000
+APP_URL=http://127.0.0.1:8000
 
 # Security
 APP_KEY=base64:... (run: php artisan key:generate)
@@ -291,7 +291,7 @@ QUEUE_CONNECTION=database
 3. ✅ Run `php artisan migrate`
 4. ✅ (Optional) Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` for OAuth
 5. ✅ Start dev server: `composer run dev`
-6. ✅ Visit `http://localhost:8000`
+6. ✅ Visit `http://127.0.0.1:8000`
 
 For web login: Use `/login` (Fortify handles it)  
 For API login: Use `POST /api/auth/login` (token-based)

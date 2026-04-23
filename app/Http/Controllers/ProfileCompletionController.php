@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileCompletionRequest;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 
 class ProfileCompletionController extends Controller
@@ -19,7 +20,7 @@ class ProfileCompletionController extends Controller
             'first_name' => $request->string('first_name')->toString(),
             'other_names' => $request->string('other_names')->toString(),
             'mobile_number' => $request->string('mobile_number')->toString(),
-            'password' => $request->string('password')->toString(),
+            'password' => Hash::make($request->string('password')->toString()),
             'password_set_at' => now(),
         ]);
 
