@@ -278,13 +278,13 @@ export default function Discover() {
     return (
         <>
             <Head title="Discover" />
-            <div className="h-svh md:min-h-screen overflow-hidden md:overflow-visible bg-gradient-to-br from-orange-50/50 via-white to-pink-50/30 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
+            <div className="h-svh md:min-h-screen overflow-hidden md:overflow-visible bg-gradient-to-br from-orange-50/50 via-white to-pink-50/30 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950">
                 {/* Pattern Background */}
                 <div className="fixed inset-0 opacity-5 pointer-events-none">
-                    <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                    <svg className="w-full h-full text-red-500 bg-red-50" xmlns="http://www.w3.org/2000/svg">
                         <defs>
                             <pattern id="paw-pattern" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
-                                <text x="20" y="50" fontSize="28" fill="currentColor" className="text-orange-500">🐾</text>
+                                <text x="20" y="50" fontSize="28" fill="currentColor" className="text-orange-900">🐾</text>
                             </pattern>
                         </defs>
                         <rect width="100%" height="100%" fill="url(#paw-pattern)" />
