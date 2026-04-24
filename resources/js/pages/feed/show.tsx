@@ -1,8 +1,6 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { Filter } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import feedComments from '@/routes/feed/comments';
-import messageWallRoutes from '@/routes/message-wall';
 import FeedFilters from './components/FeedFilters';
 import PostCard from './components/PostCard';
 import type {
@@ -100,12 +98,61 @@ export default function Show() {
         }
 
         try {
-            const query = {
-                ...feedQuery,
-                ...(targetCursor ? { cursor: targetCursor } : {}),
-            };
-            const response = await fetch(messageWallRoutes.index.url({ query }));
-            const data: FeedResponse = await response.json();
+            const query: Record<string, any> = {};
+
+            // Only include defined values
+            if (feedQuery.sort !== undefined) {
+                query.sort = feedQuery.sort;
+            }
+
+            if (feedQuery.pet_category !== undefined) {
+                query.pet_category = feedQuery.pet_category;
+            }
+
+            if (feedQuery.tags !== undefined) {
+                query.tags = feedQuery.tags;
+            }
+
+            if (targetCursor) {
+                query.cursor = targetCursor;
+            }
+
+            const queryString = new URLSearchParams(query).toString();
+            const url = `/web-api/message-wall${queryString ? '?' + queryString : ''}`;
+            const response = await fetch(url, {
+                credentials: 'same-origin',
+                headers: {
+                    'Accept': 'application/json',
+                },
+            });
+            
+            if (!response.ok) {
+                console.error(`Feed API error: ${response.status} ${response.statusText}`);
+
+                if (response.status === 401) {
+                    console.error('Authentication failed - user session may have expired');
+                } else if (response.status === 403) {
+                    console.error('Access denied');
+                } else if (response.status === 302 || response.status === 307 || response.status === 308) {
+                    console.error('Redirect response - likely login required');
+                }
+
+                return;
+            }
+            
+            // Try to parse JSON, but log the response if it fails
+            let data: FeedResponse;
+
+            try {
+                data = await response.json();
+            } catch (jsonError) {
+                const responseText = await response.text();
+                console.error('Failed to parse JSON response');
+                console.error('Response starts with:', responseText.substring(0, 500));
+
+                throw new Error(`Invalid JSON response: ${jsonError instanceof Error ? jsonError.message : String(jsonError)}`);
+            }
+            
             setFilteringEnabled(data.config.filtering_enabled);
             setAllowedSortModes(data.config.allowed_sort_modes);
             setPetCategories(data.options.pet_categories ?? []);
@@ -214,11 +261,12 @@ export default function Show() {
 
     const toggleLike = async (postId: number) => {
         try {
-            const response = await fetch(messageWallRoutes.posts.like.url(postId), {
+            const response = await fetch(`/web-api/message-wall/posts/${postId}/like`, {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
                 },
+                credentials: 'same-origin',
             });
             const data: { liked: boolean; likes_count: number } = await response.json();
             updatePost(postId, (post) => ({
@@ -233,11 +281,12 @@ export default function Show() {
 
     const toggleSave = async (postId: number) => {
         try {
-            const response = await fetch(messageWallRoutes.posts.save.url(postId), {
+            const response = await fetch(`/web-api/message-wall/posts/${postId}/save`, {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
                 },
+                credentials: 'same-origin',
             });
             const data: { saved: boolean } = await response.json();
             updatePost(postId, (post) => ({
@@ -251,11 +300,12 @@ export default function Show() {
 
     const sharePost = async (postId: number) => {
         try {
-            const response = await fetch(messageWallRoutes.posts.share.url(postId), {
+            const response = await fetch(`/web-api/message-wall/posts/${postId}/share`, {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
                 },
+                credentials: 'same-origin',
             });
             const data: { shares_count: number } = await response.json();
             updatePost(postId, (post) => ({
@@ -277,12 +327,13 @@ export default function Show() {
         }
 
         try {
-            const response = await fetch(messageWallRoutes.posts.comment.url(postId), {
+            const response = await fetch(`/web-api/message-wall/posts/${postId}/comment`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
                 },
+                credentials: 'same-origin',
                 body: JSON.stringify({
                     body,
                     parent_comment_id: parentCommentId,
