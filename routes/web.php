@@ -14,6 +14,7 @@ use App\Http\Controllers\PetProfileController;
 use App\Http\Controllers\ProfileCompletionController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Middleware\EnsureMatchingPreferencesSet;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -65,6 +66,43 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Chat Routes (Web UI - separate from API routes)
     Route::prefix('chat')->name('web.chat.')->group(function () {
+        Route::get('/', [ChatController::class, 'index'])->name('index');
+        Route::get('match/{match}', [ChatController::class, 'showByMatch'])->name('match');
+        Route::get('{conversation}', [ChatController::class, 'show'])->name('show');
+        Route::post('{conversation}/messages', [MessageController::class, 'store'])->name('messages.store');
+        Route::post('{conversation}/read', [MessageController::class, 'markRead'])->name('messages.read');
+    });
+});
+
+// Web API routes - For web pages to fetch data via AJAX/fetch
+// These are separate from /api routes to support session auth
+Route::middleware(['auth', 'verified'])->prefix('web-api')->name('web-api.')->group(function () {
+    // Matching endpoints
+    Route::prefix('matching')->name('matching.')->group(function () {
+        Route::get('recommendations', [MatchingController::class, 'recommendations'])->name('recommendations');
+        Route::post('interaction', [MatchingController::class, 'recordInteraction'])->name('recordInteraction');
+        Route::get('matches', [MatchingController::class, 'getMatches'])->name('getMatches');
+    });
+
+    // Message Wall endpoints
+    Route::prefix('message-wall')->name('message-wall.')->group(function () {
+        Route::get('/', [MessageWallController::class, 'index'])->name('index');
+        Route::post('posts', [MessageWallController::class, 'store'])->name('posts.store');
+        Route::post('posts/{messageWallPost}/like', [MessageWallInteractionController::class, 'like'])->name('posts.like');
+        Route::post('posts/{messageWallPost}/comment', [MessageWallInteractionController::class, 'comment'])->name('posts.comment');
+        Route::post('posts/{messageWallPost}/share', [MessageWallInteractionController::class, 'share'])->name('posts.share');
+        Route::post('posts/{messageWallPost}/save', [MessageWallInteractionController::class, 'save'])->name('posts.save');
+        Route::post('users/{user}/follow', [MessageWallInteractionController::class, 'follow'])->name('users.follow');
+    });
+
+    // Notifications endpoints
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+        Route::get('/', [NotificationsController::class, 'index'])->name('index');
+        Route::post('{notification}/read', [NotificationsController::class, 'markRead'])->name('read');
+    });
+
+    // Chat endpoints
+    Route::prefix('chat')->name('chat.')->group(function () {
         Route::get('/', [ChatController::class, 'index'])->name('index');
         Route::get('match/{match}', [ChatController::class, 'showByMatch'])->name('match');
         Route::get('{conversation}', [ChatController::class, 'show'])->name('show');

@@ -47,6 +47,24 @@ class CheckIncompleteProfile
         'pets.edit',
         'pets.update',
         'pets.destroy',
+        // Web-API routes (JSON endpoints for frontend)
+        'web-api.matching.recommendations',
+        'web-api.matching.recordInteraction',
+        'web-api.matching.getMatches',
+        'web-api.message-wall.index',
+        'web-api.message-wall.posts.store',
+        'web-api.message-wall.posts.like',
+        'web-api.message-wall.posts.comment',
+        'web-api.message-wall.posts.share',
+        'web-api.message-wall.posts.save',
+        'web-api.message-wall.users.follow',
+        'web-api.notifications.index',
+        'web-api.notifications.read',
+        'web-api.chat.index',
+        'web-api.chat.match',
+        'web-api.chat.show',
+        'web-api.chat.messages.store',
+        'web-api.chat.messages.read',
     ];
 
     /**
