@@ -1,13 +1,13 @@
 import { Head, router, usePage } from '@inertiajs/react';
 import { Heart, MessageCircle, PawPrint, User } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import feedComments from '@/routes/feed/comments';
-import notificationsRoutes from '@/routes/notifications';
 import type { Notification } from '@/types';
 
 export default function Notifications() {
     const { auth } = usePage().props;
-    const [notificationList, setNotificationList] = useState<Notification[]>([]);
+    const [notificationList, setNotificationList] = useState<Notification[]>(
+        [],
+    );
     const [loading, setLoading] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
@@ -15,47 +15,60 @@ export default function Notifications() {
     const [hasMore, setHasMore] = useState(false);
     const observerRef = useRef<HTMLDivElement | null>(null);
 
-    const loadNotifications = useCallback(async (targetCursor: string | null = null, replace = false) => {
-        if (replace) {
-            setLoading(true);
-        } else {
-            setLoadingMore(true);
-        }
-
-        try {
-            const query = {
-                ...(targetCursor ? { cursor: targetCursor } : {}),
-            };
-            const response = await fetch(notificationsRoutes.index.get({ query }).url, {
-                cache: 'no-store',
-            });
-            const data = await response.json();
-
-            setNotificationList((prev) => {
-                if (replace) {
-                    return (data.notifications ?? []).filter(Boolean);
-                }
-
-                const existing = new Map(prev.map((notification) => [notification.id, notification]));
-                (data.notifications ?? []).filter(Boolean).forEach((notification: Notification) => {
-                    existing.set(notification.id, notification);
-                });
-
-                return Array.from(existing.values());
-            });
-            setUnreadCount(data.unread_count);
-            setCursor(data.meta.next_cursor ?? null);
-            setHasMore(data.meta.has_more);
-        } catch (error) {
-            console.error('Failed to fetch notifications:', error);
-        } finally {
+    const loadNotifications = useCallback(
+        async (targetCursor: string | null = null, replace = false) => {
             if (replace) {
-                setLoading(false);
+                setLoading(true);
             } else {
-                setLoadingMore(false);
+                setLoadingMore(true);
             }
-        }
-    }, []);
+
+            try {
+                const query = {
+                    ...(targetCursor ? { cursor: targetCursor } : {}),
+                };
+                const queryString = new URLSearchParams(query).toString();
+                const url = `/web-api/notifications${queryString ? '?' + queryString : ''}`;
+                const response = await fetch(url, {
+                    cache: 'no-store',
+                    credentials: 'same-origin',
+                });
+                const data = await response.json();
+
+                setNotificationList((prev) => {
+                    if (replace) {
+                        return (data.notifications ?? []).filter(Boolean);
+                    }
+
+                    const existing = new Map(
+                        prev.map((notification) => [
+                            notification.id,
+                            notification,
+                        ]),
+                    );
+                    (data.notifications ?? [])
+                        .filter(Boolean)
+                        .forEach((notification: Notification) => {
+                            existing.set(notification.id, notification);
+                        });
+
+                    return Array.from(existing.values());
+                });
+                setUnreadCount(data.unread_count);
+                setCursor(data.meta.next_cursor ?? null);
+                setHasMore(data.meta.has_more);
+            } catch (error) {
+                console.error('Failed to fetch notifications:', error);
+            } finally {
+                if (replace) {
+                    setLoading(false);
+                } else {
+                    setLoadingMore(false);
+                }
+            }
+        },
+        [],
+    );
 
     useEffect(() => {
         loadNotifications(null, true);
@@ -66,25 +79,30 @@ export default function Notifications() {
         if (window.Echo && userId) {
             const channel = window.Echo.private(`users.${userId}`);
 
-            channel
-                .notification((notification: any) => {
-                    if (!notification) {
-                        return;
-                    }
+            channel.notification((notification: any) => {
+                if (!notification) {
+                    return;
+                }
 
-                    const newNotification: Notification = {
-                        id: notification.id || `notif-${Date.now()}`,
-                        type: notification.type,
-                        read_at: null,
-                        created_at: new Date().toISOString(),
-                        data: notification,
-                    };
-                    setNotificationList((prev) => [newNotification, ...prev.filter(Boolean)]);
-                    setUnreadCount((prev) => prev + 1);
-                });
+                const newNotification: Notification = {
+                    id: notification.id || `notif-${Date.now()}`,
+                    type: notification.type,
+                    read_at: null,
+                    created_at: new Date().toISOString(),
+                    data: notification,
+                };
+                setNotificationList((prev) => [
+                    newNotification,
+                    ...prev.filter(Boolean),
+                ]);
+                setUnreadCount((prev) => prev + 1);
+            });
 
             channel.error((error: unknown) => {
-                console.error('Notifications channel subscription failed:', error);
+                console.error(
+                    'Notifications channel subscription failed:',
+                    error,
+                );
             });
         }
 
@@ -102,7 +120,10 @@ export default function Notifications() {
 
         return () => {
             window.clearInterval(interval);
-            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            document.removeEventListener(
+                'visibilitychange',
+                handleVisibilityChange,
+            );
 
             if (window.Echo && userId) {
                 window.Echo.leave(`users.${userId}`);
@@ -117,15 +138,18 @@ export default function Notifications() {
             return;
         }
 
-        const observer = new IntersectionObserver((entries) => {
-            const first = entries[0];
+        const observer = new IntersectionObserver(
+            (entries) => {
+                const first = entries[0];
 
-            if (first?.isIntersecting && hasMore && !loadingMore) {
-                loadNotifications(cursor, false);
-            }
-        }, {
-            threshold: 0.4,
-        });
+                if (first?.isIntersecting && hasMore && !loadingMore) {
+                    loadNotifications(cursor, false);
+                }
+            },
+            {
+                threshold: 0.4,
+            },
+        );
 
         observer.observe(target);
 
@@ -136,18 +160,22 @@ export default function Notifications() {
 
     const markAsRead = async (notificationId: string) => {
         try {
-            await fetch(notificationsRoutes.read.post(notificationId).url, {
+            await fetch(`/web-api/notifications/${notificationId}/read`, {
                 method: 'POST',
                 headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                    'X-CSRF-TOKEN':
+                        document
+                            .querySelector('meta[name="csrf-token"]')
+                            ?.getAttribute('content') || '',
                 },
+                credentials: 'same-origin',
             });
             setNotificationList((prev) =>
                 prev.map((n) =>
                     n.id === notificationId
                         ? { ...n, read_at: new Date().toISOString() }
-                        : n
-                )
+                        : n,
+                ),
             );
             setUnreadCount((prev) => Math.max(0, prev - 1));
         } catch (error) {
@@ -160,11 +188,17 @@ export default function Notifications() {
             case 'post_liked':
                 return <Heart className="h-5 w-5 fill-red-500 text-red-500" />;
             case 'post_commented':
-                return <MessageCircle className="h-5 w-5 fill-blue-500 text-blue-500" />;
+                return (
+                    <MessageCircle className="h-5 w-5 fill-blue-500 text-blue-500" />
+                );
             case 'message_wall_comment_reply':
-                return <MessageCircle className="h-5 w-5 fill-green-500 text-green-500" />;
+                return (
+                    <MessageCircle className="h-5 w-5 fill-green-500 text-green-500" />
+                );
             case 'match':
-                return <PawPrint className="h-5 w-5 fill-purple-500 text-purple-500" />;
+                return (
+                    <PawPrint className="h-5 w-5 fill-purple-500 text-purple-500" />
+                );
             default:
                 return <User className="h-5 w-5" />;
         }
@@ -194,20 +228,20 @@ export default function Notifications() {
         const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
         if (seconds < 60) {
-return 'Just now';
-}
+            return 'Just now';
+        }
 
         if (seconds < 3600) {
-return `${Math.floor(seconds / 60)}m ago`;
-}
+            return `${Math.floor(seconds / 60)}m ago`;
+        }
 
         if (seconds < 86400) {
-return `${Math.floor(seconds / 3600)}h ago`;
-}
+            return `${Math.floor(seconds / 3600)}h ago`;
+        }
 
         if (seconds < 604800) {
-return `${Math.floor(seconds / 86400)}d ago`;
-}
+            return `${Math.floor(seconds / 86400)}d ago`;
+        }
 
         return date.toLocaleDateString();
     };
@@ -224,9 +258,7 @@ return `${Math.floor(seconds / 86400)}d ago`;
                         </h1>
                         {unreadCount > 0 && (
                             <span className="rounded-full bg-red-500 px-3 py-1 text-xs font-semibold text-white">
-                                {unreadCount}
-                                {' '}
-                                unread
+                                {unreadCount} unread
                             </span>
                         )}
                     </div>
@@ -244,7 +276,8 @@ return `${Math.floor(seconds / 86400)}d ago`;
                                 No notifications yet
                             </h3>
                             <p className="mt-1 text-gray-500 dark:text-gray-400">
-                                When someone likes or comments on your posts, you'll see them here
+                                When someone likes or comments on your posts,
+                                you'll see them here
                             </p>
                         </div>
                     ) : (
@@ -252,7 +285,9 @@ return `${Math.floor(seconds / 86400)}d ago`;
                             {notificationList.map((notification) => (
                                 <div
                                     key={notification.id}
-                                    onClick={() => handleNotificationClick(notification)}
+                                    onClick={() =>
+                                        handleNotificationClick(notification)
+                                    }
                                     className={`group flex cursor-pointer items-start gap-3 rounded-lg p-4 transition-all ${
                                         !notification.read_at
                                             ? 'bg-white shadow-sm dark:bg-gray-800'
@@ -260,9 +295,11 @@ return `${Math.floor(seconds / 86400)}d ago`;
                                     } hover:shadow-md`}
                                 >
                                     <div className="flex-shrink-0 rounded-full bg-gray-100 p-2 dark:bg-gray-800">
-                                        {getNotificationIcon(notification.data.type)}
+                                        {getNotificationIcon(
+                                            notification.data.type,
+                                        )}
                                     </div>
-                                    <div className="flex-1 min-w-0">
+                                    <div className="min-w-0 flex-1">
                                         <p
                                             className={`text-sm ${
                                                 !notification.read_at
@@ -273,7 +310,9 @@ return `${Math.floor(seconds / 86400)}d ago`;
                                             {notification.data.message}
                                         </p>
                                         <p className="mt-1 text-xs text-gray-500 dark:text-gray-500">
-                                            {formatTimeAgo(notification.created_at)}
+                                            {formatTimeAgo(
+                                                notification.created_at,
+                                            )}
                                         </p>
                                     </div>
                                     {!notification.read_at && (
