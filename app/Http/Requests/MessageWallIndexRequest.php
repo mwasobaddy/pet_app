@@ -30,4 +30,10 @@ class MessageWallIndexRequest extends FormRequest
             'cursor' => ['nullable', 'string'],
         ];
     }
+
+    protected function failedValidation(\Illuminate\Contracts\Validation\Validator $validator): void
+    {
+        // Always return JSON for this API request
+        throw new \Illuminate\Validation\ValidationException($validator);
+    }
 }
